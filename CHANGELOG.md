@@ -1,12 +1,12 @@
 # Changelog
 
-## 0.2.3 beta 1 — Adjustable DuoBar size (device test)
+## 0.2.3 — Adjustable DuoBar size
 
 - Added a DuoBar Size slider in Settings with 70%–140% scale in 5% increments.
 - Current Size shows the selected percentage, and Reset Size returns to 100%.
 - Size changes notify SpringBoard and update the current glyph without respringing.
 - Reused existing glyph rendering and Control Center positioning logic.
-- Not published to Sileo: this is an opt-in RootHide test build.
+- Tested as a RootHide beta and approved for stable release.
 
 ## 0.2.2 — Settings icon compatibility
 
