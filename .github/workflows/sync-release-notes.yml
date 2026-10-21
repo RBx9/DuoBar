@@ -1,0 +1,23 @@
+name: Sync DuoBar release notes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/RELEASE-v0.2.0.md'
+      - '.github/workflows/sync-release-notes.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update release description
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release edit v0.2.0 --repo "$GITHUB_REPOSITORY" --notes-file docs/RELEASE-v0.2.0.md
