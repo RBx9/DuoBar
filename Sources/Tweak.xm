@@ -2,6 +2,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import <objc/runtime.h>
+#import <objc/message.h>
 #import <math.h>
 #import "DuoGlyphView.h"
 
@@ -21,11 +22,17 @@
 @interface _UIStatusBarCellularSignalView : _UIStatusBarSignalView @end
 @interface _UIStatusBarForegroundView : UIView @end
 @interface _UIStatusBar : UIView @end
+@interface _UIStatusBarStringView : UIView
+@property(nonatomic, copy) NSString *text;
+@end
 
 static char DuoNativeKey, DuoContainerKey, DuoIconControllerKey;
+static char DuoSavedPercentageKey, DuoShiftedTransformKey;
 static Class DuoBatteryClass, DuoWifiClass, DuoCellularClass, DuoForegroundClass, DuoStatusBarClass;
 @class DuoStatusController;
 static BOOL DuoEnabled = YES;
+static BOOL DuoSpringBoard = NO;
+static NSHashTable<_UIStatusBarStringView *> *DuoPercentageViews;
 static NSHashTable<DuoStatusController *> *DuoControllers;
 static id DuoActivationObserver;
 
@@ -33,6 +40,55 @@ static BOOL DuoReadEnabled(void) {
     CFPreferencesAppSynchronize(CFSTR("local.duobar"));
     id value = CFBridgingRelease(CFPreferencesCopyAppValue(CFSTR("Enabled"), CFSTR("local.duobar")));
     return [value isKindOfClass:NSNumber.class] ? [value boolValue] : YES;
+}
+
+// Control Center uses a separate _UIStatusBarStringView for the large "86%" text.
+// This view is not one of the native battery/signal glyphs covered below.
+static BOOL DuoIsBatteryPercentage(NSString *text) {
+    if (![text isKindOfClass:NSString.class]) return NO;
+    NSString *trimmed = [text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if (![trimmed hasSuffix:@"%"] || trimmed.length < 2 || trimmed.length > 4) return NO;
+    NSString *digits = [trimmed substringToIndex:trimmed.length - 1];
+    return [digits rangeOfCharacterFromSet:NSCharacterSet.decimalDigitCharacterSet.invertedSet].location == NSNotFound;
+}
+
+// Only touch the Control Center presentation, never app/lock-screen status bars.
+static BOOL DuoControlCenterVisible(UIView *view) {
+    for (UIView *ancestor = view; ancestor; ancestor = ancestor.superview) {
+        NSString *name = NSStringFromClass(ancestor.class);
+        if ([name isEqualToString:@"CCUIStatusBar"] ||
+            [name isEqualToString:@"CCUIHeaderPocketView"] ||
+            [name containsString:@"ControlCenterOverlay"]) return YES;
+    }
+    if (!DuoSpringBoard) return NO;
+    Class cls = NSClassFromString(@"SBControlCenterController");
+    SEL shared = NSSelectorFromString(@"sharedInstance");
+    if (!cls || ![cls respondsToSelector:shared]) return NO;
+    id controller = ((id (*)(id, SEL))objc_msgSend)(cls, shared);
+    for (NSString *name in @[@"isVisible", @"isPresented"]) {
+        SEL selector = NSSelectorFromString(name);
+        if ([controller respondsToSelector:selector] &&
+            ((BOOL (*)(id, SEL))objc_msgSend)(controller, selector)) return YES;
+    }
+    return NO;
+}
+
+static void DuoSyncPercentage(_UIStatusBarStringView *view) {
+    NSString *saved = objc_getAssociatedObject(view, &DuoSavedPercentageKey);
+    if (saved && (!DuoEnabled || !DuoControlCenterVisible(view))) {
+        [view setText:saved];
+    } else if (!saved && DuoEnabled && DuoControlCenterVisible(view) && DuoIsBatteryPercentage(view.text)) {
+        [view setText:view.text];
+    }
+}
+
+// Move only an overlapping Control Center status indicator (e.g. orientation lock).
+// Store the original transform so the stock layout returns whenever DuoBar is off.
+static void DuoRestoreShiftedIndicator(UIView *view) {
+    NSValue *saved = objc_getAssociatedObject(view, &DuoShiftedTransformKey);
+    if (!saved) return;
+    view.transform = saved.CGAffineTransformValue;
+    objc_setAssociatedObject(view, &DuoShiftedTransformKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 // Save only drawing state. Keep native views, layout, and accessibility in place.
@@ -120,6 +176,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 @interface DuoStatusController : NSObject
 @property(nonatomic, weak) UIView *container;
 @property(nonatomic, strong) NSHashTable<UIView *> *icons;
+@property(nonatomic, strong) NSHashTable<UIView *> *shiftedIndicators;
 @property(nonatomic, strong) DuoGlyphView *glyph;
 @property(nonatomic) BOOL updating;
 - (void)update;
@@ -129,6 +186,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 - (instancetype)init {
     if ((self = [super init])) {
         self.icons = [NSHashTable weakObjectsHashTable];
+        self.shiftedIndicators = [NSHashTable weakObjectsHashTable];
         self.glyph = [[DuoGlyphView alloc] initWithFrame:CGRectZero];
         self.glyph.hidden = YES;
     }
@@ -138,6 +196,8 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     UIView *container = self.container;
     if (!container || self.updating) return;
     self.updating = YES;
+    for (UIView *indicator in self.shiftedIndicators.allObjects) DuoRestoreShiftedIndicator(indicator);
+    [self.shiftedIndicators removeAllObjects];
     if (!DuoEnabled) {
         self.glyph.hidden = YES;
         for (UIView *icon in self.icons) DuoRestoreNative(icon);
@@ -194,6 +254,62 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     y = MAX(CGRectGetMinY(container.bounds) + 1,
         MIN(y, CGRectGetMaxY(container.bounds) - height - 1));
 
+    if (DuoControlCenterVisible(container)) {
+        // In Control Center the orientation-lock badge can sit directly behind
+        // the new glyph. Give it the unused space formerly occupied by the stock
+        // percentage, without hard-coding screen coordinates or altering its state.
+        CGRect glyphRect = CGRectMake(x, y, width, height);
+        UIView *statusRoot = container;
+        for (UIView *parent = container.superview; parent; parent = parent.superview) {
+            if ([parent isKindOfClass:DuoStatusBarClass] ||
+                [NSStringFromClass(parent.class) isEqualToString:@"CCUIStatusBar"]) {
+                statusRoot = parent;
+                if ([NSStringFromClass(parent.class) isEqualToString:@"CCUIStatusBar"]) break;
+            }
+        }
+        UIView *nearest = nil;
+        CGFloat bestScore = CGFLOAT_MAX;
+        NSMutableArray<UIView *> *pending = [NSMutableArray arrayWithObject:statusRoot];
+        while (pending.count) {
+            UIView *candidate = pending.lastObject;
+            [pending removeLastObject];
+            [pending addObjectsFromArray:candidate.subviews];
+            if (candidate == container || candidate == self.glyph || !candidate.window || candidate.hidden) continue;
+            BOOL nativeGlyph = NO;
+            for (UIView *icon in self.icons) {
+                if (candidate == icon || [candidate isDescendantOfView:icon]) { nativeGlyph = YES; break; }
+            }
+            if (nativeGlyph) continue;
+            NSString *name = NSStringFromClass(candidate.class);
+            NSString *label = candidate.accessibilityLabel.lowercaseString ?: @"";
+            BOOL orientation = [label containsString:@"orientation"] ||
+                [label containsString:@"rotation"] || [label containsString:@"portrait"];
+            BOOL image = [name containsString:@"StatusBar"] &&
+                ([name containsString:@"ImageView"] || [name containsString:@"IndicatorView"]);
+            if (!orientation && !image) continue;
+            CGRect rect = [candidate convertRect:candidate.bounds toView:container];
+            if (CGRectIsEmpty(rect) || CGRectGetWidth(rect) > 40 || CGRectGetHeight(rect) > 40) continue;
+            if (CGRectGetMaxX(rect) < x - 5 || CGRectGetMinX(rect) > CGRectGetMaxX(glyphRect) ||
+                CGRectGetMaxY(rect) < y - 5 || CGRectGetMinY(rect) > CGRectGetMaxY(glyphRect) + 5) continue;
+            CGFloat score = (orientation ? 0 : 100) + fabs(CGRectGetMidX(rect) - CGRectGetMidX(glyphRect));
+            if (score < bestScore) { bestScore = score; nearest = candidate; }
+        }
+        if (nearest) {
+            CGRect rect = [nearest convertRect:nearest.bounds toView:container];
+            CGFloat shift = MAX(-24, MIN(0, CGRectGetMinX(glyphRect) - 5 - CGRectGetMaxX(rect)));
+            if (shift < -1) {
+                objc_setAssociatedObject(nearest, &DuoShiftedTransformKey,
+                    [NSValue valueWithCGAffineTransform:nearest.transform], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                nearest.transform = CGAffineTransformTranslate(nearest.transform, shift, 0);
+                [self.shiftedIndicators addObject:nearest];
+            }
+        } else {
+            // Some builds do not expose a separate orientation indicator view;
+            // reserve a small gap by moving DuoBar to the trailing edge instead.
+            x = MIN(CGRectGetMaxX(container.bounds) - width, x + 12);
+        }
+    }
+
     [CATransaction begin];
     [CATransaction setDisableActions:YES];
     if (self.glyph.superview != container) [container addSubview:self.glyph];
@@ -245,6 +361,7 @@ static void DuoReloadPreferences(void) {
     BOOL enabled = DuoReadEnabled();
     if (enabled == DuoEnabled) return;
     DuoEnabled = enabled;
+    for (_UIStatusBarStringView *view in DuoPercentageViews.allObjects) DuoSyncPercentage(view);
     NSArray<DuoStatusController *> *controllers = DuoControllers.allObjects;
     for (DuoStatusController *controller in controllers) [controller update];
     if (!enabled) {
@@ -266,6 +383,26 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
         DuoReloadPreferences();
     });
 }
+
+%group DuoPercentageHooks
+%hook _UIStatusBarStringView
+- (void)setText:(NSString *)text {
+    if (DuoEnabled && DuoControlCenterVisible(self) && DuoIsBatteryPercentage(text)) {
+        objc_setAssociatedObject(self, &DuoSavedPercentageKey, text, OBJC_ASSOCIATION_COPY_NONATOMIC);
+        [DuoPercentageViews addObject:self];
+        %orig(@"");
+        return;
+    }
+    objc_setAssociatedObject(self, &DuoSavedPercentageKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    %orig;
+    if (DuoIsBatteryPercentage(text)) [DuoPercentageViews addObject:self];
+}
+- (void)layoutSubviews {
+    %orig;
+    DuoSyncPercentage(self);
+}
+%end
+%end
 
 %group DuoBatteryHooks
 %hook _UIBatteryView
@@ -398,6 +535,8 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
     @autoreleasepool {
         if (NSProcessInfo.processInfo.operatingSystemVersion.majorVersion != 16) return;
         DuoControllers = [NSHashTable weakObjectsHashTable];
+        DuoPercentageViews = [NSHashTable weakObjectsHashTable];
+        DuoSpringBoard = [NSBundle.mainBundle.bundleIdentifier isEqualToString:@"com.apple.springboard"];
         DuoEnabled = DuoReadEnabled();
         DuoBatteryClass = NSClassFromString(@"_UIBatteryView");
         DuoWifiClass = NSClassFromString(@"_UIStatusBarWifiSignalView");
@@ -423,6 +562,7 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
                 (void)notification;
                 DuoReloadPreferences();
             }];
+        if (DuoSpringBoard && NSClassFromString(@"_UIStatusBarStringView")) %init(DuoPercentageHooks);
         %init(DuoBatteryHooks);
         %init(DuoSignalDataHooks);
         %init(DuoWifiHooks);

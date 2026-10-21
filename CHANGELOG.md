@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.1 — Control Center and Settings update
+
+- Fixed the duplicate stock battery percentage in Control Center.
+- Fixed the rotation-lock status indicator overlap with DuoBar.
+- Added the custom blue DuoBar icon to Settings and the preference page header.
+- Reorganized Settings into Appearance, About DuoBar, and Links & Updates.
+- Added RBx9 Repo, one-tap Sileo source, GitHub project, and developer links.
+- Preserved the live Enable DuoBar switch and stock status-bar restoration.
+- Control Center corrections confirmed on a jailbroken iPhone.
+
 ## 0.2.0
 
 - Added a Settings page with a persistent Enable DuoBar switch.
