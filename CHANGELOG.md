@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 beta 1 — Control Center layout test
+
+- Hide the duplicate stock battery percentage in Control Center while DuoBar is enabled.
+- Try to shift the overlapping orientation-lock status indicator left to clear the DuoBar glyph.
+- Keep the ordinary status bar and disabled state unchanged.
+- RootHide compilation passed; real-device verification is still needed.
+
 ## 0.2.0
 
 - Added a Settings page with a persistent Enable DuoBar switch.
