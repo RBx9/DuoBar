@@ -8,7 +8,16 @@ Developed by **RBx9** · [Twitter / X: @RedaBuali](https://twitter.com/RedaBuali
 
 *Design preview drawn from the tweak’s icon geometry; not a device screenshot.*
 
-## Download
+## Install using Sileo (recommended)
+
+1. Open **Sileo → Sources → +**.
+2. Add the **RBx9 Repo** source: **https://rbx9.github.io/**
+3. Refresh sources, open **RBx9 Repo**, and install **DuoBar**.
+4. Respring, then open **Settings → DuoBar** to configure it.
+
+This source is shared with future RBx9 tweaks, so you won't need to add a new source for each release. The included installer requires **Dopamine RootHide on iOS 16**.
+
+## Download .deb manually
 
 [**Download DuoBar v0.2.0 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v0.2.0/DuoBar_0.2.0_RootHide.deb)
 
@@ -24,7 +33,7 @@ No compiling is needed. The supplied package uses RootHide’s `iphoneos-arm64e`
 - Light and dark status-bar styling, with clear gaps around the cellular dots.
 - A persistent **Enable DuoBar** switch in **Settings → DuoBar**.
 
-## Install
+## Manual installation
 
 1. Download the `.deb` on your jailbroken iPhone.
 2. Open it in your RootHide package manager or RootHide-compatible Filza and install it.
