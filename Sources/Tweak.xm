@@ -571,58 +571,77 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     for (UIView *icon in self.icons) {
         if (DuoStatusContainer(icon) == container && DuoIsVisible(icon, container)) DuoCoverNative(icon);
     }
-    if (inControlCenter) {
-        CGRect ring = self.glyph.frame;
+    if (inControlCenter && container.window) {
+        // The orientation-lock icon can be a SIBLING of DuoBar's foreground
+        // view, not its descendant. First check our container, then the CC
+        // window. All geometry and movement limits must use window points:
+        // clamping to the narrow battery container previously prevented
+        // the lock from leaving the circle even with a larger gap.
+        UIWindow *window = container.window;
+        CGRect ring = [self.glyph convertRect:self.glyph.bounds toView:window];
         UIView *chosen = nil;
         CGFloat bestScore = CGFLOAT_MAX;
-        NSMutableArray<UIView *> *pending = [NSMutableArray arrayWithObject:container];
-        NSUInteger inspected = 0;
-        while (pending.count && inspected++ < 180) {
-            UIView *candidate = pending.lastObject;
-            [pending removeLastObject];
-            if (!candidate || candidate == self.glyph) continue;
-            if (candidate != container) [pending addObjectsFromArray:candidate.subviews];
-            if (candidate == container || [candidate isDescendantOfView:self.glyph] ||
-                !candidate.window || candidate.hidden || candidate.alpha <= 0.01) continue;
-            BOOL nativeIcon = NO;
-            for (UIView *icon in self.icons) {
-                if (candidate == icon || [candidate isDescendantOfView:icon]) {
-                    nativeIcon = YES;
-                    break;
+        for (NSInteger pass = 0; pass < 2 && !chosen; pass++) {
+            UIView *root = pass == 0 ? container : window;
+            if (pass == 1 && root == container) break;
+            NSMutableArray<UIView *> *pending = [NSMutableArray arrayWithObject:root];
+            NSUInteger inspected = 0;
+            while (pending.count && inspected++ < (pass == 0 ? 200 : 1200)) {
+                UIView *candidate = pending.lastObject;
+                [pending removeLastObject];
+                if (candidate == self.glyph || [candidate isDescendantOfView:self.glyph]) continue;
+                // Visit the root's children too; rotation lock may be a sibling.
+                [pending addObjectsFromArray:candidate.subviews];
+                if (candidate == root || candidate.window != window ||
+                    candidate.hidden || candidate.alpha <= 0.01) continue;
+
+                BOOL nativeIcon = NO;
+                for (UIView *icon in self.icons) {
+                    if (candidate == icon || [candidate isDescendantOfView:icon]) {
+                        nativeIcon = YES;
+                        break;
+                    }
                 }
-            }
-            if (nativeIcon) continue;
-            NSString *cls = NSStringFromClass(candidate.class).lowercaseString;
-            NSString *label = candidate.accessibilityLabel.lowercaseString ?: @"";
-            NSString *identifier = candidate.accessibilityIdentifier.lowercaseString ?: @"";
-            BOOL rotationLock = [cls containsString:@"orientation"] ||
-                [cls containsString:@"rotationlock"] ||
-                [cls containsString:@"portraitlock"] ||
-                [label containsString:@"orientation"] ||
-                [label containsString:@"rotation"] ||
-                [label containsString:@"portrait"] ||
-                [identifier containsString:@"orientation"] ||
-                [identifier containsString:@"rotation"];
-            BOOL statusImage = [cls containsString:@"statusbar"] &&
-                ([cls containsString:@"image"] || [cls containsString:@"indicator"]);
-            if (!rotationLock && !statusImage) continue;
-            CGRect r = [candidate convertRect:candidate.bounds toView:container];
-            if (CGRectIsEmpty(r) || CGRectGetWidth(r) < 4 ||
-                CGRectGetHeight(r) < 4 || CGRectGetWidth(r) > 38 ||
-                CGRectGetHeight(r) > 38 ||
-                !CGRectIntersectsRect(r, CGRectInset(ring, -3, -4))) continue;
-            if (DuoIsHotspotIndicator(candidate)) continue;
-            CGFloat score = (rotationLock ? 0 : 100) +
-                            fabs(CGRectGetMidX(r) - CGRectGetMidX(ring));
-            if (score < bestScore) {
-                chosen = candidate;
-                bestScore = score;
+                if (nativeIcon) continue;
+
+                NSString *cls = NSStringFromClass(candidate.class).lowercaseString;
+                NSString *label = candidate.accessibilityLabel.lowercaseString ?: @"";
+                NSString *identifier = candidate.accessibilityIdentifier.lowercaseString ?: @"";
+                BOOL rotationLock = [cls containsString:@"orientation"] ||
+                    [cls containsString:@"rotationlock"] ||
+                    [cls containsString:@"portraitlock"] ||
+                    [label containsString:@"orientation"] ||
+                    [label containsString:@"rotation"] ||
+                    [label containsString:@"portrait"] ||
+                    [identifier containsString:@"orientation"] ||
+                    [identifier containsString:@"rotation"];
+                BOOL statusImage = [cls containsString:@"statusbar"] &&
+                    ([cls containsString:@"image"] || [cls containsString:@"indicator"]);
+
+                if (!rotationLock && !statusImage) continue;
+                CGRect r = [candidate convertRect:candidate.bounds toView:window];
+                if (CGRectIsEmpty(r) || CGRectGetWidth(r) < 4 ||
+                    CGRectGetHeight(r) < 4 || CGRectGetWidth(r) > 38 ||
+                    CGRectGetHeight(r) > 38 ||
+                    !CGRectIntersectsRect(r, CGRectInset(ring, -12.0, -9.0)))
+                    continue;
+                // Do not change the hotspot link or other DuoBar content.
+                if (DuoIsHotspotIndicator(candidate)) continue;
+                CGFloat score = (rotationLock ? 0 : 100) +
+                    fabs(CGRectGetMidX(r) - CGRectGetMidX(ring));
+                if (score < bestScore) {
+                    chosen = candidate;
+                    bestScore = score;
+                }
             }
         }
         if (chosen) {
-            CGRect r = [chosen convertRect:chosen.bounds toView:container];
+            CGRect r = [chosen convertRect:chosen.bounds toView:window];
             CGFloat desiredRight = CGRectGetMinX(ring) - 10.0;
-            CGFloat minShift = CGRectGetMinX(container.bounds) + 2.0 - CGRectGetMinX(r);
+            // Clamp to the visible WINDOW, not to the small status-icon
+            // container. This leaves room to move the lock beside DuoBar.
+            CGFloat windowLeft = CGRectGetMinX(window.bounds) + 3.0;
+            CGFloat minShift = windowLeft - CGRectGetMinX(r);
             CGFloat shift = MAX(minShift, MIN(0.0, desiredRight - CGRectGetMaxX(r)));
             if (shift < -1.0) {
                 objc_setAssociatedObject(chosen, &DuoRotationOriginalTransformKey,
