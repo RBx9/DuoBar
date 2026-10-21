@@ -31,6 +31,17 @@ static char DuoSavedPercentageKey, DuoShiftedTransformKey;
 static Class DuoBatteryClass, DuoWifiClass, DuoCellularClass, DuoForegroundClass, DuoStatusBarClass;
 @class DuoStatusController;
 static BOOL DuoEnabled = YES;
+static CGFloat DuoSizeScale = 1.0;
+
+static CGFloat DuoReadSizeScale(void) {
+    CFPreferencesAppSynchronize(CFSTR("local.duobar"));
+    id value = CFBridgingRelease(CFPreferencesCopyAppValue(CFSTR("SizeScale"), CFSTR("local.duobar")));
+    if (![value isKindOfClass:NSNumber.class]) return 1.0;
+    double scale = [value doubleValue];
+    if (!isfinite(scale)) return 1.0;
+    // A safe 70%–140% range; invalid legacy preferences cannot grow the glyph.
+    return (CGFloat)fmax(0.70, fmin(1.40, scale));
+}
 static BOOL DuoSpringBoard = NO;
 static NSHashTable<_UIStatusBarStringView *> *DuoPercentageViews;
 static NSHashTable<DuoStatusController *> *DuoControllers;
@@ -245,7 +256,11 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 
     // Draw in the status-bar container, rather than clipping to a 12pt battery.
     // Preserve UIKit's item spacing and fit compact/landscape status bars.
-    CGFloat height = MIN(30, CGRectGetHeight(container.bounds) - 2);
+    // Keep 100% exactly equal to the original glyph, and resize the entire
+    // drawing (ring, percentage, Wi-Fi and dots) rather than individual pieces.
+    // Respect the height of compact status bars to prevent edge clipping.
+    CGFloat baseHeight = MIN(30.0, CGRectGetHeight(container.bounds) - 2.0);
+    CGFloat height = MIN(baseHeight * DuoSizeScale, CGRectGetHeight(container.bounds) - 2.0);
     CGFloat width = height * 32.0 / 34.0;
     CGRect batteryRect = [battery convertRect:battery.bounds toView:container];
     CGFloat x = CGRectGetMaxX(area) - width;
@@ -359,8 +374,10 @@ static void DuoUpdateContainer(UIView *container) {
 
 static void DuoReloadPreferences(void) {
     BOOL enabled = DuoReadEnabled();
-    if (enabled == DuoEnabled) return;
+    CGFloat newScale = DuoReadSizeScale();
+    if (enabled == DuoEnabled && fabs(newScale - DuoSizeScale) < 0.001) return;
     DuoEnabled = enabled;
+    DuoSizeScale = newScale;
     for (_UIStatusBarStringView *view in DuoPercentageViews.allObjects) DuoSyncPercentage(view);
     NSArray<DuoStatusController *> *controllers = DuoControllers.allObjects;
     for (DuoStatusController *controller in controllers) [controller update];
@@ -538,6 +555,7 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
         DuoPercentageViews = [NSHashTable weakObjectsHashTable];
         DuoSpringBoard = [NSBundle.mainBundle.bundleIdentifier isEqualToString:@"com.apple.springboard"];
         DuoEnabled = DuoReadEnabled();
+        DuoSizeScale = DuoReadSizeScale();
         DuoBatteryClass = NSClassFromString(@"_UIBatteryView");
         DuoWifiClass = NSClassFromString(@"_UIStatusBarWifiSignalView");
         DuoCellularClass = NSClassFromString(@"_UIStatusBarCellularSignalView");
