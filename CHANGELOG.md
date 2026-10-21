@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.4 beta 10 — Rotation-lock status hierarchy
+
+- Search the Control Center status container and, if needed, the enclosing window for the overlapping rotation-lock image instead of assuming it is a DuoBar child.
+- Position only the selected status indicator using window-space geometry, avoiding the overly narrow battery-container clamp that prevented earlier shifts.
+- Keep the 10-point target gap and preserve the original UIKit transform for restoration.
+- Do not change the hotspot indicator, no-flash transitions, drawing, size slider or stable packages.
+- RootHide device-test build; Sileo remains on v0.2.3.
+
 ## 0.2.4 beta 9 — More rotation-lock spacing
 
 - Move the rotation-lock indicator up to five additional points left by expanding the desired gap with DuoBar from 5 to 10 points.
