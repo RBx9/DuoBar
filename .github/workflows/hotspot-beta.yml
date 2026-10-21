@@ -1,0 +1,68 @@
+name: Build DuoBar Hotspot Beta 7
+
+on:
+  push:
+    branches: [fix/hotspot-inside-circle-v0.2.4-beta1]
+    paths: ['.github/workflows/hotspot-beta.yml']
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.scheme }} hotspot beta
+    runs-on: macos-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        scheme: [roothide]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: brew install make ldid dpkg gnu-tar xz rsync
+      - name: Configure Theos
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Fetch Theos and SDK
+        env:
+          SCHEME: ${{ matrix.scheme }}
+        run: |
+          if [ "$SCHEME" = roothide ]; then
+            git clone --recursive --depth 1 https://github.com/roothide/theos.git "$THEOS"
+          else
+            git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
+          fi
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+      - name: Compile and inspect package
+        shell: bash
+        env:
+          SCHEME: ${{ matrix.scheme }}
+        run: |
+          set -euo pipefail
+          package_id=local.duobar
+          arch=iphoneos-arm64e
+          prefix=
+          suffix=RootHide
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME="$SCHEME" TARGET=iphone:clang:16.5:16.0
+          files=(packages/*.deb)
+          test "${#files[@]}" -eq 1
+          deb="${files[0]}"
+          test "$(dpkg-deb -f "$deb" Package)" = "$package_id"
+          test "$(dpkg-deb -f "$deb" Version)" = "0.2.4~beta7"
+          test "$(dpkg-deb -f "$deb" Architecture)" = "$arch"
+          dpkg-deb --contents "$deb" | tee contents.txt
+          grep -Fq "${prefix}Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib" contents.txt
+          grep -Fq "${prefix}Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarIcon.png" contents.txt
+          grep -Fq "${prefix}Library/PreferenceLoader/Preferences/DuoBar.plist" contents.txt
+          cp "$deb" "DuoBar_0.2.4-beta7_${suffix}.deb"
+          shasum -a 256 "DuoBar_0.2.4-beta7_${suffix}.deb" > "SHA256SUMS-${suffix}.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DuoBar-hotspot-beta-${{ matrix.scheme }}
+          path: |
+            DuoBar_0.2.4-beta7_*.deb
+            SHA256SUMS-*.txt
+          if-no-files-found: error

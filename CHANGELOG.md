@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.2.4 beta 7 — Restore hotspot glyph and stabilize transitions
+
+- Detect Personal Hotspot chain symbols even when iOS exposes them as vector/template images.
+- Keep DuoBar's own in-ring link image out of native-indicator detection so it remains visible.
+- Coalesce status-bar relayout updates and use a stable Control Center position during presentation changes.
+- Keep the existing 70%–140% size slider, app status bars, and RootHide-only beta packaging.
+
+## 0.2.4 beta 6 — Keep DuoBar visible in apps
+
+- Use the device battery reading when an app's status-bar container has no native battery view.
+- Refresh all status-bar controllers as an app enters the foreground and becomes active.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
+## 0.2.4 beta 5 — Control Center hotspot image fallback
+
+- Reads the hotspot glyph from either the status-bar image view or its layer contents.
+- Forces the inner glyph view to lay out after Control Center positions DuoBar.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
+## 0.2.4 beta 4 — Native Personal Hotspot symbol
+
+- Reuses the chain-link image supplied by iOS and scales it inside DuoBar.
+- Falls back to Apple's standard `link` symbol when the status-bar image is unavailable.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
+## 0.2.4 beta 3 — Compact Personal Hotspot glyph
+
+- Shrinks the chain-link mark and removes its rotation so it sits level inside the DuoBar ring.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
+## 0.2.4 beta 2 — Personal Hotspot indicator compatibility
+
+- Detects unlabeled Personal Hotspot chain glyphs by their rendered shape.
+- Scans both the regular status bar and Control Center for the hotspot indicator.
+- RootHide test build only; Rootless is deferred until the fix is confirmed.
+
+## 0.2.4 beta 1 — Personal Hotspot indicator compatibility
+
+- Render the Personal Hotspot link symbol inside DuoBar when iOS replaces Wi-Fi with the hotspot status indicator.
+- Hide the original hotspot glyph only while DuoBar is visible and enabled, restoring it on disable or disconnect.
+- Add a Control Center battery-reading fallback for hotspot layouts that omit the native battery view.
+- Preserve standard Wi-Fi rendering and v0.2.3 size/Control Center settings.
+- Beta only: RootHide and Rootless device testing required before publishing to Sileo.
+
 ## 0.2.3 — Adjustable DuoBar size
 
 - Added a DuoBar Size slider in Settings with 70%–140% scale in 5% increments.
