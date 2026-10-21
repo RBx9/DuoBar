@@ -1,0 +1,98 @@
+name: Publish DuoBar RootHide Beta
+
+on:
+  push:
+    branches:
+      - fix/hotspot-inside-circle-v0.2.4-beta1
+    paths:
+      - '.github/workflows/release-hotspot-beta.yml'
+    tags:
+      - 'v0.2.4-beta.2'
+      - 'v0.2.4-beta.3'
+      - 'v0.2.4-beta.4'
+      - 'v0.2.4-beta.5'
+      - 'v0.2.4-beta.6'
+      - 'v0.2.4-beta.7'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build and publish RootHide beta package
+    runs-on: macos-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: brew install make ldid dpkg gnu-tar xz rsync
+
+      - name: Configure Theos
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+
+      - name: Read beta version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF_TYPE" == "branch" ]]; then
+            beta=7
+          else
+            beta="${GITHUB_REF_NAME##*.}"
+          fi
+          if [[ "$beta" != "2" && "$beta" != "3" && "$beta" != "4" && "$beta" != "5" && "$beta" != "6" && "$beta" != "7" ]]; then
+            echo "Unsupported beta tag: $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+          echo "beta=$beta" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch RootHide Theos and iOS SDK
+        run: |
+          git clone --recursive --depth 1 https://github.com/roothide/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+
+      - name: Build and verify package
+        shell: bash
+        env:
+          BETA: ${{ steps.version.outputs.beta }}
+        run: |
+          set -euo pipefail
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide TARGET=iphone:clang:16.5:16.0
+          files=(packages/*.deb)
+          test "${#files[@]}" -eq 1
+          deb="${files[0]}"
+          test "$(dpkg-deb -f "$deb" Package)" = "local.duobar"
+          test "$(dpkg-deb -f "$deb" Version)" = "0.2.4~beta${BETA}"
+          test "$(dpkg-deb -f "$deb" Architecture)" = "iphoneos-arm64e"
+          dpkg-deb --contents "$deb" | tee contents.txt
+          grep -Fq 'Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib' contents.txt
+          grep -Fq 'Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarIcon.png' contents.txt
+          grep -Fq 'Library/PreferenceLoader/Preferences/DuoBar.plist' contents.txt
+          cp "$deb" "DuoBar_0.2.4-beta${BETA}_RootHide.deb"
+          shasum -a 256 "DuoBar_0.2.4-beta${BETA}_RootHide.deb" > SHA256SUMS-RootHide.txt
+
+      - name: Publish GitHub prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.2.4-beta.${{ steps.version.outputs.beta }}
+          target_commitish: ${{ github.sha }}
+          name: DuoBar v0.2.4 Beta ${{ steps.version.outputs.beta }} (RootHide)
+          prerelease: true
+          make_latest: false
+          body: |
+            RootHide-only test build for the Personal Hotspot status-bar fix.
+
+            This beta keeps DuoBar visible when an app status-bar container omits the native battery view, recognizes hotspot symbols rendered as vector/template images, and coalesces status-bar updates while Control Center opens and closes. It uses one stable Control Center offset and does not transform neighboring iOS indicators. Live behavior still needs confirmation on an iPhone.
+
+            Install the attached `DuoBar_0.2.4-beta${{ steps.version.outputs.beta }}_RootHide.deb` with a RootHide-compatible package manager and respring. Test the hotspot link inside DuoBar in Settings and Control Center, test the size slider at 70%, 100%, and 140% in apps and Control Center, and rapidly open and close Control Center to check for jumping or disappearance.
+
+            Rootless packaging and the stable/Sileo release are deferred until testing is complete.
+          files: |
+            DuoBar_0.2.4-beta${{ steps.version.outputs.beta }}_RootHide.deb
+            SHA256SUMS-RootHide.txt

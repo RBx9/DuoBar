@@ -1,5 +1,80 @@
 # Changelog
 
+## 0.2.5 — Personal Hotspot and Control Center fixes (RootHide stable)
+
+- Display the iOS Personal Hotspot chain-link symbol inside the DuoBar circle rather than next to the status-bar indicators.
+- Move the rotation-lock status icon beside DuoBar in Control Center with a 10-point target gap, using window-space positioning and restoring the original transform when inactive.
+- Prevent stock battery and cellular indicators briefly flashing when opening or closing Control Center.
+- Preserve the 70%–140% size slider, Settings icon, Wi-Fi/cellular display, and live on/off switch.
+- Promoted from user-tested v0.2.4 Beta 10. The separate Rootless package remains at v0.2.3.
+
+## 0.2.4 beta 10 — Rotation-lock status hierarchy
+
+- Search the Control Center status container and, if needed, the enclosing window for the overlapping rotation-lock image instead of assuming it is a DuoBar child.
+- Position only the selected status indicator using window-space geometry, avoiding the overly narrow battery-container clamp that prevented earlier shifts.
+- Keep the 10-point target gap and preserve the original UIKit transform for restoration.
+- Do not change the hotspot indicator, no-flash transitions, drawing, size slider or stable packages.
+- RootHide device-test build; Sileo remains on v0.2.3.
+
+## 0.2.4 beta 9 — More rotation-lock spacing
+
+- Move the rotation-lock indicator up to five additional points left by expanding the desired gap with DuoBar from 5 to 10 points.
+- Retain the safe screen-edge clamp, hotspot symbol and no-flash transition fixes from beta 8.
+- RootHide-only device test; Sileo remains on stable v0.2.3.
+
+## 0.2.4 beta 8 — Rotation lock and status-bar transitions
+
+- Restore a safe Control Center rotation-lock adjustment, moving an overlapping lock indicator just LEFT of the DuoBar ring.
+- Preserve and restore UIKit's original orientation-icon transform when Control Center closes or the tweak is switched off.
+- Re-cover native battery/Wi-Fi/cellular layers synchronously after UIKit layout rather than allowing a visible stock-icon flash before the next deferred redraw.
+- Render new status-bar containers in the same layout cycle to reduce transition flashes.
+- Keep the working hotspot link inside the DuoBar circle and retain the size slider.
+- Test build only; leave public Sileo v0.2.3 unchanged.
+
+## 0.2.4 beta 7 — Restore hotspot glyph and stabilize transitions
+
+- Detect Personal Hotspot chain symbols even when iOS exposes them as vector/template images.
+- Keep DuoBar's own in-ring link image out of native-indicator detection so it remains visible.
+- Coalesce status-bar relayout updates and use a stable Control Center position during presentation changes.
+- Keep the existing 70%–140% size slider, app status bars, and RootHide-only beta packaging.
+
+## 0.2.4 beta 6 — Keep DuoBar visible in apps
+
+- Use the device battery reading when an app's status-bar container has no native battery view.
+- Refresh all status-bar controllers as an app enters the foreground and becomes active.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
+## 0.2.4 beta 5 — Control Center hotspot image fallback
+
+- Reads the hotspot glyph from either the status-bar image view or its layer contents.
+- Forces the inner glyph view to lay out after Control Center positions DuoBar.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
+## 0.2.4 beta 4 — Native Personal Hotspot symbol
+
+- Reuses the chain-link image supplied by iOS and scales it inside DuoBar.
+- Falls back to Apple's standard `link` symbol when the status-bar image is unavailable.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
+## 0.2.4 beta 3 — Compact Personal Hotspot glyph
+
+- Shrinks the chain-link mark and removes its rotation so it sits level inside the DuoBar ring.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
+## 0.2.4 beta 2 — Personal Hotspot indicator compatibility
+
+- Detects unlabeled Personal Hotspot chain glyphs by their rendered shape.
+- Scans both the regular status bar and Control Center for the hotspot indicator.
+- RootHide test build only; Rootless is deferred until the fix is confirmed.
+
+## 0.2.4 beta 1 — Personal Hotspot indicator compatibility
+
+- Render the Personal Hotspot link symbol inside DuoBar when iOS replaces Wi-Fi with the hotspot status indicator.
+- Hide the original hotspot glyph only while DuoBar is visible and enabled, restoring it on disable or disconnect.
+- Add a Control Center battery-reading fallback for hotspot layouts that omit the native battery view.
+- Preserve standard Wi-Fi rendering and v0.2.3 size/Control Center settings.
+- Beta only: RootHide and Rootless device testing required before publishing to Sileo.
+
 ## 0.2.3 — Adjustable DuoBar size
 
 - Added a DuoBar Size slider in Settings with 70%–140% scale in 5% increments.

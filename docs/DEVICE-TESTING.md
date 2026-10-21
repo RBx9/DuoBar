@@ -8,7 +8,10 @@ Status: **not run on an iPhone**. These are the checks to complete on the intend
 - [ ] Respring, then reopen apps that were already running.
 - [ ] Confirm a single combined glyph appears on the Home Screen: battery percentage above open side arcs, Wi-Fi in the center and four cellular dots below. The native battery, Wi-Fi and cellular drawings should not remain underneath or beside it.
 - [ ] Check status bars in several system and third-party apps, the Lock Screen and the app switcher. Confirm the native status-bar visibility rules still apply.
-- [ ] Open Control Center and confirm its battery presentation has not been replaced by this status-bar tweak.
+- [ ] Open Control Center and confirm exactly one DuoBar appears in its status bar, the battery percentage is not duplicated, and the glyph stays inside the status-bar area.
+- [ ] If connected to a Personal Hotspot, confirm the Apple chain-link is inside DuoBar both in Control Center and in the Home Screen and app status bars.
+- [ ] Open and close Control Center rapidly at least 20 times. Confirm DuoBar does not jump, float, duplicate, or disappear.
+- [ ] Test the size slider at 70%, 100%, and 140% on the Home Screen, in an app, and in Control Center. Confirm the selected size updates immediately and Reset Size returns to 100%.
 - [ ] Rotate in an app that supports landscape. Check that the combined glyph fits the available status-bar height, without clipping or overlap with the time, notch, privacy indicators or other items.
 
 ## Appearance and state changes
@@ -27,7 +30,7 @@ Status: **not run on an iPhone**. These are the checks to complete on the intend
 
 ## Compatibility and removal
 
-- [ ] Open Settings → DuoBar after installation and confirm the page loads, the version is 0.2.0, the developer is RBx9, and the description appears.
+- [ ] Open Settings → DuoBar after installation and confirm the page loads, the version matches the installed package, the developer is RBx9, and the description appears.
 - [ ] Tap Twitter / X and confirm the link opens @RedaBuali.
 - [ ] Turn Enable DuoBar off and confirm stock battery, Wi-Fi and cellular icons return immediately on the Home Screen and in apps, without duplicate drawings.
 - [ ] Turn the switch back on and confirm the circular design returns without a respring.
