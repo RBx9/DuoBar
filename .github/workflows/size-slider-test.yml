@@ -1,0 +1,62 @@
+name: Build DuoBar Size Slider Test
+
+on:
+  push:
+    branches: [feature/size-slider-v0.2.3-beta1]
+    paths: ['.github/workflows/size-slider-test.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  beta-root-hide:
+    name: Build RootHide beta (not Sileo)
+    runs-on: macos-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install compiler and packaging prerequisites
+        run: brew install make ldid dpkg gnu-tar xz rsync
+      - name: Configure RootHide build tools
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Fetch RootHide Theos and iOS SDK
+        run: |
+          git clone --recursive --depth 1 https://github.com/roothide/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+      - name: Compile beta package and verify metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide TARGET=iphone:clang:16.5:16.0
+          files=(packages/*.deb)
+          test "${#files[@]}" -eq 1
+          deb="${files[0]}"
+          test "$(dpkg-deb -f "$deb" Package)" = "local.duobar"
+          test "$(dpkg-deb -f "$deb" Version)" = "0.2.3~beta1"
+          test "$(dpkg-deb -f "$deb" Architecture)" = "iphoneos-arm64e"
+          dpkg-deb --contents "$deb" | tee file-list.txt
+          grep -Fq 'Library/PreferenceBundles/DuoBarPrefs.bundle/' file-list.txt
+          grep -Fq 'Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib' file-list.txt
+          cp "$deb" DuoBar_0.2.3-beta1_RootHide.deb
+          shasum -a 256 DuoBar_0.2.3-beta1_RootHide.deb > SHA256SUMS-beta1.txt
+      - name: Publish opt-in GitHub prerelease for device testing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view v0.2.3-beta.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Test release already exists; refusing to overwrite assets" >&2
+            exit 1
+          fi
+          gh release create v0.2.3-beta.1 \
+            DuoBar_0.2.3-beta1_RootHide.deb SHA256SUMS-beta1.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "DuoBar v0.2.3 beta 1 — Adjustable Size" \
+            --notes-file docs/TEST-v0.2.3-beta1.md --prerelease

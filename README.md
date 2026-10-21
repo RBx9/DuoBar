@@ -19,9 +19,9 @@ This source is shared with future RBx9 tweaks, so you won't need to add a new so
 
 ## Download .deb manually
 
-[**Download DuoBar v0.2.2 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v0.2.2/DuoBar_0.2.1_RootHide.deb)
+[**Download DuoBar v0.2.3 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v0.2.3/DuoBar_0.2.3_RootHide.deb)
 
-[All releases](https://github.com/RBx9/DuoBar/releases) · [Previous v0.2.0](https://github.com/RBx9/DuoBar/releases/tag/v0.2.0)
+[All releases](https://github.com/RBx9/DuoBar/releases) · [Previous v0.2.2](https://github.com/RBx9/DuoBar/releases/tag/v0.2.2)
 
 No compiling is needed. The supplied package uses RootHide’s `iphoneos-arm64e` package format.
 
@@ -32,6 +32,7 @@ No compiling is needed. The supplied package uses RootHide’s `iphoneos-arm64e`
 - Charging indicator, low-battery red, and Low Power Mode yellow.
 - Light and dark status-bar styling, with clear gaps around the cellular dots.
 - A persistent **Enable DuoBar** switch in **Settings → DuoBar**.
+- Adjustable **DuoBar Size** slider (70%–140%), a current-size percentage, and Reset Size to 100%. Changes apply without respringing.
 - Fixes for duplicate battery percentage and rotation-lock icon overlap in Control Center.
 - A bundled Settings icon and organized preference page with direct **RBx9 Repo** and **Sileo source** links.
 - v0.2.2 fixes PreferenceLoader icon discovery by including icon sizes in the actual preferences bundle.
@@ -49,7 +50,7 @@ Existing DuoBar installations can be upgraded with the same package. See the [in
 
 The supplied download targets **iOS 16.x and Dopamine RootHide**, with tweak injection and PreferenceLoader. PreferenceLoader is declared as a package dependency. This download is not a standard Dopamine/rootless package.
 
-The Control Center positioning fix was confirmed on a test device. The new v0.2.2 Settings icon and links have been build-checked but should also be checked on-device after upgrading. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
+The Control Center positioning fix was confirmed on a test device. The v0.2.3 size-slider beta was tested and approved for stable release. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
 
 ## Build from source
 

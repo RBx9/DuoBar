@@ -13,7 +13,7 @@ You can keep the same RBx9 Repo source for future compatible tweaks and upgrades
 
 ## Manual .deb installation or upgrade
 
-1. On your iPhone, [download DuoBar v0.2.2](https://github.com/RBx9/DuoBar/releases/download/v0.2.2/DuoBar_0.2.2_RootHide.deb).
+1. On your iPhone, [download DuoBar v0.2.3](https://github.com/RBx9/DuoBar/releases/download/v0.2.3/DuoBar_0.2.3_RootHide.deb).
 2. Open the downloaded file in your RootHide package manager or RootHide-compatible Filza, then install it.
 3. If an earlier DuoBar version is installed, install this package over it.
 4. Respring when installation finishes.
@@ -29,6 +29,10 @@ Open **Settings → DuoBar** and use **Enable DuoBar**.
 The switch is intended to apply immediately, and its saved state is read when apps start or become active. A respring is needed for initial installation, not for ordinary switch changes. Version 0.2.1 adds the Settings icon and repository links; these new preference elements should be checked on-device after updating.
 
 The page includes the tweak description, version, developer credit, and links to [RBx9 Repo](https://rbx9.github.io/), Sileo, the GitHub project, and [@RedaBuali](https://twitter.com/RedaBuali).
+
+## Adjust the size
+
+Open **Settings → DuoBar → DuoBar Size**. Drag the slider from **70% to 140%**, in 5% steps, and see the result without respringing. Use **Reset Size to 100%** to restore the original size. Compact status bars can limit large sizes.
 
 ## Remove DuoBar
 
