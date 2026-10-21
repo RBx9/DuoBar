@@ -2,6 +2,9 @@ name: Build DuoBar
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - fix/control-center-battery-layout
 
 permissions:
   contents: read
