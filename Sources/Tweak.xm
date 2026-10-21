@@ -32,7 +32,7 @@
 @end
 
 static char DuoNativeKey, DuoContainerKey, DuoIconControllerKey;
-static char DuoSavedPercentageKey, DuoChainImageResultKey;
+static char DuoSavedPercentageKey, DuoChainImageResultKey, DuoRotationOriginalTransformKey;
 static __weak _UIBatteryView *DuoLastBattery;
 static double DuoLastBatteryLevel = -1;
 static BOOL DuoLastBatteryCharging = NO;
@@ -394,6 +394,18 @@ static BOOL DuoIsHotspotIndicator(UIView *view) {
     return NO;
 }
 
+// Restore UIKit's original transform when DuoBar is disabled or Control Center closes.
+static void DuoRestoreRotationIndicator(UIView *indicator) {
+    NSValue *original = objc_getAssociatedObject(indicator, &DuoRotationOriginalTransformKey);
+    if (!original) return;
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    indicator.transform = original.CGAffineTransformValue;
+    [CATransaction commit];
+    objc_setAssociatedObject(indicator, &DuoRotationOriginalTransformKey, nil,
+                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
 static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     long long total = view.numberOfBars;
     if (total <= 0) return 0;
@@ -404,6 +416,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 @interface DuoStatusController : NSObject
 @property(nonatomic, weak) UIView *container;
 @property(nonatomic, strong) NSHashTable<UIView *> *icons;
+@property(nonatomic, strong) NSHashTable<UIView *> *shiftedIndicators;
 @property(nonatomic, strong) DuoGlyphView *glyph;
 @property(nonatomic) BOOL updating;
 @property(nonatomic) BOOL updateScheduled;
@@ -415,6 +428,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 - (instancetype)init {
     if ((self = [super init])) {
         self.icons = [NSHashTable weakObjectsHashTable];
+        self.shiftedIndicators = [NSHashTable weakObjectsHashTable];
         self.glyph = [[DuoGlyphView alloc] initWithFrame:CGRectZero];
         self.glyph.hidden = YES;
     }
@@ -432,6 +446,12 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     UIView *container = self.container;
     if (!container || self.updating) return;
     self.updating = YES;
+    // Recompute a new non-accumulating shift each layout cycle.
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    for (UIView *view in self.shiftedIndicators.allObjects) DuoRestoreRotationIndicator(view);
+    [self.shiftedIndicators removeAllObjects];
+    [CATransaction commit];
     DuoScanHotspotIndicators(container);
     if (!DuoEnabled) {
         self.glyph.hidden = YES;
@@ -534,9 +554,9 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     y = MAX(CGRectGetMinY(container.bounds) + 1 - extra,
         MIN(y, CGRectGetMaxY(container.bounds) - height - 1 + extra));
 
-    if (DuoControlCenterVisible(container)) {
-        // Use one stable Control Center offset. Moving UIKit's neighboring
-        // indicators while their presentation is animating made the glyph jump.
+    BOOL inControlCenter = DuoControlCenterVisible(container);
+    if (inControlCenter) {
+        // Preserve the hotspot beta's stable Control Center glyph position.
         x = MIN(CGRectGetMaxX(container.bounds) - width, x + 12);
     }
 
@@ -550,6 +570,68 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     self.glyph.hidden = NO;
     for (UIView *icon in self.icons) {
         if (DuoStatusContainer(icon) == container && DuoIsVisible(icon, container)) DuoCoverNative(icon);
+    }
+    if (inControlCenter) {
+        CGRect ring = self.glyph.frame;
+        UIView *chosen = nil;
+        CGFloat bestScore = CGFLOAT_MAX;
+        NSMutableArray<UIView *> *pending = [NSMutableArray arrayWithObject:container];
+        NSUInteger inspected = 0;
+        while (pending.count && inspected++ < 180) {
+            UIView *candidate = pending.lastObject;
+            [pending removeLastObject];
+            if (!candidate || candidate == self.glyph) continue;
+            if (candidate != container) [pending addObjectsFromArray:candidate.subviews];
+            if (candidate == container || [candidate isDescendantOfView:self.glyph] ||
+                !candidate.window || candidate.hidden || candidate.alpha <= 0.01) continue;
+            BOOL nativeIcon = NO;
+            for (UIView *icon in self.icons) {
+                if (candidate == icon || [candidate isDescendantOfView:icon]) {
+                    nativeIcon = YES;
+                    break;
+                }
+            }
+            if (nativeIcon) continue;
+            NSString *cls = NSStringFromClass(candidate.class).lowercaseString;
+            NSString *label = candidate.accessibilityLabel.lowercaseString ?: @"";
+            NSString *identifier = candidate.accessibilityIdentifier.lowercaseString ?: @"";
+            BOOL rotationLock = [cls containsString:@"orientation"] ||
+                [cls containsString:@"rotationlock"] ||
+                [cls containsString:@"portraitlock"] ||
+                [label containsString:@"orientation"] ||
+                [label containsString:@"rotation"] ||
+                [label containsString:@"portrait"] ||
+                [identifier containsString:@"orientation"] ||
+                [identifier containsString:@"rotation"];
+            BOOL statusImage = [cls containsString:@"statusbar"] &&
+                ([cls containsString:@"image"] || [cls containsString:@"indicator"]);
+            if (!rotationLock && !statusImage) continue;
+            CGRect r = [candidate convertRect:candidate.bounds toView:container];
+            if (CGRectIsEmpty(r) || CGRectGetWidth(r) < 4 ||
+                CGRectGetHeight(r) < 4 || CGRectGetWidth(r) > 38 ||
+                CGRectGetHeight(r) > 38 ||
+                !CGRectIntersectsRect(r, CGRectInset(ring, -3, -4))) continue;
+            if (DuoIsHotspotIndicator(candidate)) continue;
+            CGFloat score = (rotationLock ? 0 : 100) +
+                            fabs(CGRectGetMidX(r) - CGRectGetMidX(ring));
+            if (score < bestScore) {
+                chosen = candidate;
+                bestScore = score;
+            }
+        }
+        if (chosen) {
+            CGRect r = [chosen convertRect:chosen.bounds toView:container];
+            CGFloat desiredRight = CGRectGetMinX(ring) - 5.0;
+            CGFloat minShift = CGRectGetMinX(container.bounds) + 2.0 - CGRectGetMinX(r);
+            CGFloat shift = MAX(minShift, MIN(0.0, desiredRight - CGRectGetMaxX(r)));
+            if (shift < -1.0) {
+                objc_setAssociatedObject(chosen, &DuoRotationOriginalTransformKey,
+                    [NSValue valueWithCGAffineTransform:chosen.transform],
+                    OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                chosen.transform = CGAffineTransformTranslate(chosen.transform, shift, 0);
+                [self.shiftedIndicators addObject:chosen];
+            }
+        }
     }
     [CATransaction commit];
     [self.glyph setNeedsDisplay];
@@ -598,8 +680,25 @@ static void DuoScanHotspotIndicators(UIView *container) {
     }
 }
 
+// Keep already-overlaid native icons covered in the SAME layout pass.
+// The old layout hooks restored stock layers then deferred re-covering to
+// the next main queue cycle, exposing a frame of stock battery and signal.
+static void DuoKeepNativeCoveredDuringLayout(UIView *icon) {
+    if (!DuoEnabled || !icon.window) return;
+    DuoStatusController *controller = objc_getAssociatedObject(icon, &DuoIconControllerKey);
+    if (!controller || controller.glyph.hidden ||
+        controller.glyph.superview != controller.container ||
+        !DuoIsVisible(icon, controller.container)) return;
+    DuoCoverNative(icon);
+}
+
 static void DuoUpdateContainer(UIView *container) {
     DuoStatusController *controller = objc_getAssociatedObject(container, &DuoContainerKey);
+    if (!controller) return;
+    if (DuoEnabled && controller.glyph.hidden && !controller.updating) {
+        // Newly visible status-bar containers cannot wait for another frame.
+        [controller update];
+    }
     [controller scheduleUpdate];
 }
 
@@ -654,9 +753,9 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
 %group DuoBatteryHooks
 %hook _UIBatteryView
 - (void)layoutSubviews {
-    DuoRestoreNative(self);
     %orig;
     DuoRegisterIcon(self);
+    DuoKeepNativeCoveredDuringLayout(self);
 }
 - (void)didMoveToWindow {
     %orig;
@@ -717,18 +816,18 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
 %group DuoWifiHooks
 %hook _UIStatusBarWifiSignalView
 - (void)layoutSubviews {
-    DuoRestoreNative(self);
     %orig;
     DuoRegisterIcon(self);
+    DuoKeepNativeCoveredDuringLayout(self);
 }
 - (void)didMoveToWindow {
     %orig;
     DuoRegisterIcon(self);
 }
 - (void)_updateActiveBars {
-    DuoRestoreNative(self);
     %orig;
     DuoRegisterIcon(self);
+    DuoKeepNativeCoveredDuringLayout(self);
 }
 %end
 %end
@@ -757,18 +856,18 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
 %group DuoCellularHooks
 %hook _UIStatusBarCellularSignalView
 - (void)layoutSubviews {
-    DuoRestoreNative(self);
     %orig;
     DuoRegisterIcon(self);
+    DuoKeepNativeCoveredDuringLayout(self);
 }
 - (void)didMoveToWindow {
     %orig;
     DuoRegisterIcon(self);
 }
 - (void)_updateActiveBars {
-    DuoRestoreNative(self);
     %orig;
     DuoRegisterIcon(self);
+    DuoKeepNativeCoveredDuringLayout(self);
 }
 %end
 %end
