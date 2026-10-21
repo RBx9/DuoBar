@@ -2,7 +2,16 @@
 
 The supplied `.deb` is for **iOS 16.x with Dopamine RootHide**. Its package architecture is `iphoneos-arm64e`. It requires working tweak injection and PreferenceLoader; the package manager handles declared dependencies.
 
-## Installation or upgrade
+## Install from Sileo (recommended)
+
+1. Open **Sileo → Sources → +**.
+2. Add **https://rbx9.github.io/** (RBx9 Repo).
+3. Refresh your sources, find **DuoBar** in RBx9 Repo, and install or upgrade it.
+4. Respring, then reopen Settings and any previously running apps.
+
+You can keep the same RBx9 Repo source for future compatible tweaks and upgrades.
+
+## Manual .deb installation or upgrade
 
 1. On your iPhone, [download DuoBar v0.2.0](https://github.com/RBx9/DuoBar/releases/download/v0.2.0/DuoBar_0.2.0_RootHide.deb).
 2. Open the downloaded file in your RootHide package manager or RootHide-compatible Filza, then install it.
