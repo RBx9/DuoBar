@@ -19,6 +19,9 @@
 @property(nonatomic, copy) UIColor *activeColor;
 @end
 @interface _UIStatusBarWifiSignalView : _UIStatusBarSignalView @end
+// When connected to another iPhone's Personal Hotspot, iOS 16 often
+// swaps the Wi-Fi strength view for a status-bar image/icon view.
+@interface _UIStatusBarImageView : UIImageView @end
 @interface _UIStatusBarCellularSignalView : _UIStatusBarSignalView @end
 @interface _UIStatusBarForegroundView : UIView @end
 @interface _UIStatusBar : UIView @end
@@ -28,6 +31,11 @@
 
 static char DuoNativeKey, DuoContainerKey, DuoIconControllerKey;
 static char DuoSavedPercentageKey, DuoShiftedTransformKey;
+static __weak _UIBatteryView *DuoLastBattery;
+static double DuoLastBatteryLevel = -1;
+static BOOL DuoLastBatteryCharging = NO;
+static BOOL DuoLastBatteryLowPower = NO;
+static UIColor *DuoLastBatteryColor;
 static Class DuoBatteryClass, DuoWifiClass, DuoCellularClass, DuoForegroundClass, DuoStatusBarClass;
 @class DuoStatusController;
 static BOOL DuoEnabled = YES;
@@ -177,6 +185,29 @@ static BOOL DuoIsVisible(UIView *view, UIView *container) {
     return NO;
 }
 
+// Restrict hotspot recognition to dedicated status-bar glyphs, never generic
+// UI images or the names of Wi-Fi networks on the Settings screen.
+static BOOL DuoIsHotspotIndicator(UIView *view) {
+    if (!view) return NO;
+    NSString *className = NSStringFromClass(view.class).lowercaseString;
+    BOOL statusGlyph = [className containsString:@"statusbar"] ||
+                       [className containsString:@"hotspot"] ||
+                       [className containsString:@"tether"];
+    if (!statusGlyph) return NO;
+    NSArray<NSString *> *tokens = @[
+        className,
+        view.accessibilityLabel.lowercaseString ?: @"",
+        view.accessibilityIdentifier.lowercaseString ?: @"",
+    ];
+    for (NSString *value in tokens) {
+        if ([value containsString:@"personal hotspot"] ||
+            [value containsString:@"personalhotspot"] ||
+            [value containsString:@"tethering"] ||
+            [value containsString:@"hotspot"]) return YES;
+    }
+    return NO;
+}
+
 static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     long long total = view.numberOfBars;
     if (total <= 0) return 0;
@@ -216,7 +247,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
         return;
     }
     _UIBatteryView *battery = nil;
-    BOOL wifiVisible = NO;
+    BOOL wifiVisible = NO, hotspotVisible = NO;
     NSInteger wifiBars = 0, cellularBars = 0;
     CGRect area = CGRectNull;
 
@@ -233,26 +264,51 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
         } else if ([icon isKindOfClass:DuoWifiClass]) {
             wifiVisible = YES;
             wifiBars = MAX(wifiBars, DuoBars((_UIStatusBarSignalView *)icon, 3));
+
         } else if ([icon isKindOfClass:DuoCellularClass]) {
             // With multiple SIM indicators, use the strongest visible line.
             cellularBars = MAX(cellularBars, DuoBars((_UIStatusBarSignalView *)icon, 4));
+        } else if (DuoIsHotspotIndicator(icon)) {
+            hotspotVisible = YES;
         }
     }
 
-    if (!battery || CGRectIsNull(area) || CGRectGetHeight(container.bounds) < 16) {
+    if (battery) {
+        DuoLastBattery = battery;
+        DuoLastBatteryLevel = battery.chargePercent;
+        DuoLastBatteryCharging = battery.chargingState != 0;
+        DuoLastBatteryLowPower = battery.saverModeActive;
+        DuoLastBatteryColor = [battery.bodyColor colorWithAlphaComponent:1];
+    }
+    // Control Center can remove its native battery view when a Personal
+    // Hotspot indicator replaces the Wi-Fi status item. Preserve DuoBar
+    // using the last valid battery reading from another status bar.
+    BOOL ccHotspotFallback = !battery && hotspotVisible && DuoControlCenterVisible(container);
+    double fallbackCharge = DuoLastBatteryLevel;
+    if (ccHotspotFallback && !(isfinite(fallbackCharge) && fallbackCharge >= 0 && fallbackCharge <= 1)) {
+        UIDevice *device = UIDevice.currentDevice;
+        device.batteryMonitoringEnabled = YES;
+        fallbackCharge = device.batteryLevel;
+    }
+    if ((!battery && (!ccHotspotFallback || !isfinite(fallbackCharge) ||
+                      fallbackCharge < 0 || fallbackCharge > 1)) ||
+        CGRectIsNull(area) || CGRectGetHeight(container.bounds) < 16) {
         self.glyph.hidden = YES;
         for (UIView *icon in self.icons) DuoRestoreNative(icon);
         self.updating = NO;
         return;
     }
 
-    self.glyph.charge = battery.chargePercent;
-    self.glyph.charging = battery.chargingState != 0;
-    self.glyph.lowPower = battery.saverModeActive;
-    self.glyph.wifiVisible = wifiVisible;
+    self.glyph.charge = battery ? battery.chargePercent : fallbackCharge;
+    self.glyph.charging = battery ? (battery.chargingState != 0) : DuoLastBatteryCharging;
+    self.glyph.lowPower = battery ? battery.saverModeActive : DuoLastBatteryLowPower;
+    self.glyph.hotspotActive = hotspotVisible;
+    self.glyph.wifiVisible = wifiVisible && !hotspotVisible;
     self.glyph.wifiBars = wifiBars;
     self.glyph.cellularBars = cellularBars;
-    self.glyph.foreground = [battery.bodyColor colorWithAlphaComponent:1] ?: UIColor.labelColor;
+    self.glyph.foreground = battery
+        ? ([battery.bodyColor colorWithAlphaComponent:1] ?: UIColor.labelColor)
+        : (DuoLastBatteryColor ?: UIColor.labelColor);
 
     // Draw in the status-bar container, rather than clipping to a 12pt battery.
     // Preserve UIKit's item spacing and fit compact/landscape status bars.
@@ -265,7 +321,9 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     CGFloat baseHeight = MIN(30.0, CGRectGetHeight(container.bounds) - 2.0);
     CGFloat height = baseHeight * DuoSizeScale;
     CGFloat width = height * 32.0 / 34.0;
-    CGRect batteryRect = [battery convertRect:battery.bounds toView:container];
+    CGRect batteryRect = battery
+        ? [battery convertRect:battery.bounds toView:container]
+        : area;
     CGFloat x = CGRectGetMaxX(area) - width;
     CGFloat y = CGRectGetMidY(batteryRect) - height / 2;
     x = MAX(CGRectGetMinX(container.bounds), MIN(x, CGRectGetMaxX(container.bounds) - width));
@@ -346,7 +404,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 
 static void DuoRegisterIcon(UIView *icon) {
     if (![icon isKindOfClass:DuoBatteryClass] && ![icon isKindOfClass:DuoWifiClass]
-            && ![icon isKindOfClass:DuoCellularClass]) return;
+            && ![icon isKindOfClass:DuoCellularClass] && !DuoIsHotspotIndicator(icon)) return;
     UIView *container = DuoStatusContainer(icon);
     DuoStatusController *previous = objc_getAssociatedObject(icon, &DuoIconControllerKey);
     if (previous && previous.container != container) {
@@ -371,7 +429,25 @@ static void DuoRegisterIcon(UIView *icon) {
     [controller update];
 }
 
+// Also discover a hotspot icon during status-bar relayout: some iOS 16
+// variants only update the image rather than moving its UIImageView.
+static void DuoScanHotspotIndicators(UIView *container) {
+    if (!container) return;
+    NSMutableArray<UIView *> *pending = [NSMutableArray arrayWithObject:container];
+    NSUInteger checked = 0;
+    while (pending.count && checked++ < 150) {
+        UIView *candidate = pending.lastObject;
+        [pending removeLastObject];
+        if (DuoIsHotspotIndicator(candidate)) {
+            DuoRegisterIcon(candidate);
+            continue;
+        }
+        [pending addObjectsFromArray:candidate.subviews];
+    }
+}
+
 static void DuoUpdateContainer(UIView *container) {
+    DuoScanHotspotIndicators(container);
     DuoStatusController *controller = objc_getAssociatedObject(container, &DuoContainerKey);
     [controller update];
 }
@@ -507,6 +583,19 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
 %end
 %end
 
+%group DuoHotspotImageHooks
+%hook _UIStatusBarImageView
+- (void)layoutSubviews {
+    %orig;
+    if (DuoIsHotspotIndicator(self)) DuoRegisterIcon(self);
+}
+- (void)didMoveToWindow {
+    %orig;
+    if (DuoIsHotspotIndicator(self)) DuoRegisterIcon(self);
+}
+%end
+%end
+
 %group DuoCellularHooks
 %hook _UIStatusBarCellularSignalView
 - (void)layoutSubviews {
@@ -589,6 +678,7 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
         %init(DuoSignalDataHooks);
         %init(DuoWifiHooks);
         %init(DuoCellularHooks);
+        if (NSClassFromString(@"_UIStatusBarImageView")) %init(DuoHotspotImageHooks);
         %init(DuoStatusBarHooks);
         if (DuoForegroundClass) {
             %init(DuoForegroundHooks);

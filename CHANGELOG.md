@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.4 beta 1 — Personal Hotspot indicator compatibility
+
+- Render the Personal Hotspot link symbol inside DuoBar when iOS replaces Wi-Fi with the hotspot status indicator.
+- Hide the original hotspot glyph only while DuoBar is visible and enabled, restoring it on disable or disconnect.
+- Add a Control Center battery-reading fallback for hotspot layouts that omit the native battery view.
+- Preserve standard Wi-Fi rendering and v0.2.3 size/Control Center settings.
+- Beta only: RootHide and Rootless device testing required before publishing to Sileo.
+
 ## 0.2.3 — Adjustable DuoBar size
 
 - Added a DuoBar Size slider in Settings with 70%–140% scale in 5% increments.

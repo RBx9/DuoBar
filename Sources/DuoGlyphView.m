@@ -65,7 +65,23 @@ static void DuoArc(CGPoint center, CGFloat radius, CGFloat start, CGFloat end, U
         NSParagraphStyleAttributeName: paragraph,
     }];
 
-    if (self.wifiVisible) {
+    if (self.hotspotActive) {
+        // When connected to another iPhone's hotspot, iOS substitutes the
+        // chain-link symbol for Wi-Fi. Keep it INSIDE the DuoBar ring.
+        CGContextSaveGState(context);
+        CGContextTranslateCTM(context, 16.0, 19.6);
+        CGContextRotateCTM(context, -0.36);
+        UIBezierPath *leftLink = [UIBezierPath bezierPathWithRoundedRect:
+            CGRectMake(-11.1, -3.6, 13.2, 7.2) cornerRadius:3.6];
+        UIBezierPath *rightLink = [UIBezierPath bezierPathWithRoundedRect:
+            CGRectMake(-2.1, -3.6, 13.2, 7.2) cornerRadius:3.6];
+        leftLink.lineWidth = 1.9;
+        rightLink.lineWidth = 1.9;
+        [foreground setStroke];
+        [leftLink stroke];
+        [rightLink stroke];
+        CGContextRestoreGState(context);
+    } else if (self.wifiVisible) {
         CGContextSaveGState(context);
         CGContextTranslateCTM(context, 9, 13);
         CGContextScaleCTM(context, 0.78, 0.78);

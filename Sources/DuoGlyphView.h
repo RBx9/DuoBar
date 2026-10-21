@@ -5,6 +5,7 @@
 @property(nonatomic) BOOL charging;
 @property(nonatomic) BOOL lowPower;
 @property(nonatomic) BOOL wifiVisible;
+@property(nonatomic) BOOL hotspotActive;
 @property(nonatomic) NSInteger wifiBars;
 @property(nonatomic) NSInteger cellularBars;
 @property(nonatomic, strong) UIColor *foreground;
