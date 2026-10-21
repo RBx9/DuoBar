@@ -6,7 +6,7 @@ include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = DuoBarPrefs
 DuoBarPrefs_FILES = DuoRootListController.m
-DuoBarPrefs_FRAMEWORKS = UIKit CoreFoundation
+DuoBarPrefs_FRAMEWORKS = UIKit CoreFoundation QuartzCore
 DuoBarPrefs_PRIVATE_FRAMEWORKS = Preferences
 DuoBarPrefs_INSTALL_PATH = /Library/PreferenceBundles
 DuoBarPrefs_CFLAGS = -fobjc-arc -Wall -Wextra

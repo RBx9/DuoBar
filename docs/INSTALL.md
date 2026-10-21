@@ -13,7 +13,7 @@ You can keep the same RBx9 Repo source for future compatible tweaks and upgrades
 
 ## Manual .deb installation or upgrade
 
-1. On your iPhone, [download DuoBar v0.2.0](https://github.com/RBx9/DuoBar/releases/download/v0.2.0/DuoBar_0.2.0_RootHide.deb).
+1. On your iPhone, [download DuoBar v0.2.1](https://github.com/RBx9/DuoBar/releases/download/v0.2.1/DuoBar_0.2.1_RootHide.deb).
 2. Open the downloaded file in your RootHide package manager or RootHide-compatible Filza, then install it.
 3. If an earlier DuoBar version is installed, install this package over it.
 4. Respring when installation finishes.
@@ -26,9 +26,9 @@ Open **Settings → DuoBar** and use **Enable DuoBar**.
 - **On:** show the circular battery, Wi-Fi, and cellular design.
 - **Off:** restore the system’s original status-bar icons.
 
-The switch is intended to apply immediately, and its saved state is read when apps start or become active. A respring is needed for initial installation, not for ordinary switch changes. The new Settings functionality in v0.2.0 has not yet been verified on a device.
+The switch is intended to apply immediately, and its saved state is read when apps start or become active. A respring is needed for initial installation, not for ordinary switch changes. Version 0.2.1 adds the Settings icon and repository links; these new preference elements should be checked on-device after updating.
 
-The same page includes the tweak description, version, developer credit, and a Twitter / X link for [@RedaBuali](https://twitter.com/RedaBuali).
+The page includes the tweak description, version, developer credit, and links to [RBx9 Repo](https://rbx9.github.io/), Sileo, the GitHub project, and [@RedaBuali](https://twitter.com/RedaBuali).
 
 ## Remove DuoBar
 

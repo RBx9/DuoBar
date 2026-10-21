@@ -2,6 +2,7 @@
 #import <Preferences/PSSpecifier.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import <UIKit/UIKit.h>
+#import <QuartzCore/QuartzCore.h>
 #import "../Shared/DuoMetadata.h"
 
 static NSString *const DuoPreferencesDomain = @"local.duobar";

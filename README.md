@@ -19,9 +19,9 @@ This source is shared with future RBx9 tweaks, so you won't need to add a new so
 
 ## Download .deb manually
 
-[**Download DuoBar v0.2.0 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v0.2.0/DuoBar_0.2.0_RootHide.deb)
+[**Download DuoBar v0.2.1 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v0.2.1/DuoBar_0.2.1_RootHide.deb)
 
-[All releases](https://github.com/RBx9/DuoBar/releases) · [Repository copy](downloads/DuoBar_0.2.0_RootHide.deb?raw=true)
+[All releases](https://github.com/RBx9/DuoBar/releases) · [Previous v0.2.0](https://github.com/RBx9/DuoBar/releases/tag/v0.2.0)
 
 No compiling is needed. The supplied package uses RootHide’s `iphoneos-arm64e` package format.
 
@@ -32,6 +32,8 @@ No compiling is needed. The supplied package uses RootHide’s `iphoneos-arm64e`
 - Charging indicator, low-battery red, and Low Power Mode yellow.
 - Light and dark status-bar styling, with clear gaps around the cellular dots.
 - A persistent **Enable DuoBar** switch in **Settings → DuoBar**.
+- Fixes for duplicate battery percentage and rotation-lock icon overlap in Control Center.
+- An icon and organized preference page with direct **RBx9 Repo** and **Sileo source** links.
 
 ## Manual installation
 
@@ -46,7 +48,7 @@ Existing DuoBar installations can be upgraded with the same package. See the [in
 
 The supplied download targets **iOS 16.x and Dopamine RootHide**, with tweak injection and PreferenceLoader. PreferenceLoader is declared as a package dependency. This download is not a standard Dopamine/rootless package.
 
-Version 0.2.0 has been compiled and package-checked. Its new Settings page and live switch still need on-device verification. Read the [build verification](docs/BUILD-VERIFICATION.md) and [device checklist](docs/DEVICE-TESTING.md) for the scope of validation.
+The Control Center positioning fix was confirmed on a test device. The new v0.2.1 Settings icon and links have been build-checked but should also be checked on-device after upgrading. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
 
 ## Build from source
 

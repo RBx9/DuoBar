@@ -1,11 +1,14 @@
 # Changelog
 
-## 0.2.1 beta 1 — Control Center layout test
+## 0.2.1 — Control Center and Settings update
 
-- Hide the duplicate stock battery percentage in Control Center while DuoBar is enabled.
-- Try to shift the overlapping orientation-lock status indicator left to clear the DuoBar glyph.
-- Keep the ordinary status bar and disabled state unchanged.
-- RootHide compilation passed; real-device verification is still needed.
+- Fixed the duplicate stock battery percentage in Control Center.
+- Fixed the rotation-lock status indicator overlap with DuoBar.
+- Added the custom blue DuoBar icon to Settings and the preference page header.
+- Reorganized Settings into Appearance, About DuoBar, and Links & Updates.
+- Added RBx9 Repo, one-tap Sileo source, GitHub project, and developer links.
+- Preserved the live Enable DuoBar switch and stock status-bar restoration.
+- Control Center corrections confirmed on a jailbroken iPhone.
 
 ## 0.2.0
 
