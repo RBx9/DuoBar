@@ -621,7 +621,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
         }
         if (chosen) {
             CGRect r = [chosen convertRect:chosen.bounds toView:container];
-            CGFloat desiredRight = CGRectGetMinX(ring) - 5.0;
+            CGFloat desiredRight = CGRectGetMinX(ring) - 10.0;
             CGFloat minShift = CGRectGetMinX(container.bounds) + 2.0 - CGRectGetMinX(r);
             CGFloat shift = MAX(minShift, MIN(0.0, desiredRight - CGRectGetMaxX(r)));
             if (shift < -1.0) {
