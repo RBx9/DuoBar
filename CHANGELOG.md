@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.3 beta 1 — Adjustable DuoBar size (device test)
+
+- Added a DuoBar Size slider in Settings with 70%–140% scale in 5% increments.
+- Current Size shows the selected percentage, and Reset Size returns to 100%.
+- Size changes notify SpringBoard and update the current glyph without respringing.
+- Reused existing glyph rendering and Control Center positioning logic.
+- Not published to Sileo: this is an opt-in RootHide test build.
+
 ## 0.2.2 — Settings icon compatibility
 
 - Fixed the missing DuoBar icon on the iOS Settings main list by bundling all icon sizes inside DuoBarPrefs.bundle, where PreferenceLoader resolves entry images.
