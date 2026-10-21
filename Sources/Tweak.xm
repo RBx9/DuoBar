@@ -258,16 +258,20 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     // Preserve UIKit's item spacing and fit compact/landscape status bars.
     // Keep 100% exactly equal to the original glyph, and resize the entire
     // drawing (ring, percentage, Wi-Fi and dots) rather than individual pieces.
-    // Respect the height of compact status bars to prevent edge clipping.
+    // At 100% keep the exact v0.2.2 geometry. When increasing size,
+    // allow a controlled overhang into the status bar's padding so that
+    // compact containers can still visibly enlarge the glyph.
+    // We don't modify the container's clipping policy or native UIKit views.
     CGFloat baseHeight = MIN(30.0, CGRectGetHeight(container.bounds) - 2.0);
-    CGFloat height = MIN(baseHeight * DuoSizeScale, CGRectGetHeight(container.bounds) - 2.0);
+    CGFloat height = baseHeight * DuoSizeScale;
     CGFloat width = height * 32.0 / 34.0;
     CGRect batteryRect = [battery convertRect:battery.bounds toView:container];
     CGFloat x = CGRectGetMaxX(area) - width;
     CGFloat y = CGRectGetMidY(batteryRect) - height / 2;
     x = MAX(CGRectGetMinX(container.bounds), MIN(x, CGRectGetMaxX(container.bounds) - width));
-    y = MAX(CGRectGetMinY(container.bounds) + 1,
-        MIN(y, CGRectGetMaxY(container.bounds) - height - 1));
+    CGFloat extra = MAX(0, height - (CGRectGetHeight(container.bounds) - 2.0)) / 2.0;
+    y = MAX(CGRectGetMinY(container.bounds) + 1 - extra,
+        MIN(y, CGRectGetMaxY(container.bounds) - height - 1 + extra));
 
     if (DuoControlCenterVisible(container)) {
         // In Control Center the orientation-lock badge can sit directly behind
