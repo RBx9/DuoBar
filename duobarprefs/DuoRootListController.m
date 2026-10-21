@@ -3,6 +3,7 @@
 #import <CoreFoundation/CoreFoundation.h>
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
+#import <math.h>
 #import "../Shared/DuoMetadata.h"
 
 static NSString *const DuoPreferencesDomain = @"local.duobar";
@@ -10,6 +11,11 @@ static CFStringRef const DuoPreferencesNotification = CFSTR("local.duobar/prefer
 static NSString *const DuoRepoURL = @"https://rbx9.github.io/";
 static NSString *const DuoSourceURL = @"sileo://source/https://rbx9.github.io/";
 static NSString *const DuoGitHubURL = @"https://github.com/RBx9/DuoBar";
+
+@interface DuoRootListController ()
+@property(nonatomic, strong) PSSpecifier *duoSizeSlider;
+@property(nonatomic, strong) PSSpecifier *duoSizeLabel;
+@end
 
 @implementation DuoRootListController
 
@@ -74,6 +80,36 @@ static NSString *const DuoGitHubURL = @"https://github.com/RBx9/DuoBar";
         [enabled setProperty:@YES forKey:@"default"];
         [items addObject:enabled];
 
+        PSSpecifier *sizeGroup = [PSSpecifier groupSpecifierWithName:@"DuoBar Size"];
+        [sizeGroup setProperty:@"Move the slider to resize DuoBar. 100% matches the original size; larger sizes are limited by the space available in compact status bars."
+                        forKey:@"footerText"];
+        [items addObject:sizeGroup];
+
+        PSSpecifier *sizeValue = [PSSpecifier preferenceSpecifierNamed:@"Current Size"
+            target:self set:NULL get:@selector(sizePercent:)
+            detail:Nil cell:PSTitleValueCell edit:Nil];
+        self.duoSizeLabel = sizeValue;
+        [items addObject:sizeValue];
+
+        PSSpecifier *sizeSlider = [PSSpecifier preferenceSpecifierNamed:nil
+            target:self set:@selector(setPreferenceValue:specifier:)
+            get:@selector(readPreferenceValue:) detail:Nil cell:PSSliderCell edit:Nil];
+        [sizeSlider setProperty:DuoPreferencesDomain forKey:@"defaults"];
+        [sizeSlider setProperty:@"SizeScale" forKey:@"key"];
+        [sizeSlider setProperty:@(1.0) forKey:@"default"];
+        [sizeSlider setProperty:@(0.70) forKey:@"min"];
+        [sizeSlider setProperty:@(1.40) forKey:@"max"];
+        [sizeSlider setProperty:@YES forKey:@"isSegmented"];
+        [sizeSlider setProperty:@(15) forKey:@"segmentCount"];
+        [sizeSlider setProperty:@YES forKey:@"isContinuous"];
+        self.duoSizeSlider = sizeSlider;
+        [items addObject:sizeSlider];
+
+        PSSpecifier *resetSize = [PSSpecifier preferenceSpecifierNamed:@"Reset Size to 100%"
+            target:self set:NULL get:NULL detail:Nil cell:PSButtonCell edit:Nil];
+        resetSize.buttonAction = @selector(resetSize:);
+        [items addObject:resetSize];
+
         PSSpecifier *about = [PSSpecifier groupSpecifierWithName:@"About DuoBar"];
         [about setProperty:DUO_DESCRIPTION forKey:@"footerText"];
         [items addObject:about];
@@ -124,14 +160,46 @@ static NSString *const DuoGitHubURL = @"https://github.com/RBx9/DuoBar";
     return [value isKindOfClass:NSNumber.class] ? value : [specifier propertyForKey:@"default"];
 }
 
+- (NSString *)sizePercent:(PSSpecifier *)specifier {
+    (void)specifier;
+    NSNumber *size = [self readPreferenceValue:self.duoSizeSlider];
+    CGFloat scale = [size respondsToSelector:@selector(doubleValue)] ? size.doubleValue : 1.0;
+    return [NSString stringWithFormat:@"%ld%%", (long)lround(fmax(0.70, fmin(1.40, scale)) * 100.0)];
+}
+
 - (void)setPreferenceValue:(id)value specifier:(PSSpecifier *)specifier {
     NSString *key = [specifier propertyForKey:@"key"];
-    NSNumber *enabled = @([value boolValue]);
-    CFPreferencesSetAppValue((__bridge CFStringRef)key, (__bridge CFPropertyListRef)enabled,
+    if (!key.length) return;
+
+    NSNumber *stored = nil;
+    if ([key isEqualToString:@"SizeScale"]) {
+        double number = [value respondsToSelector:@selector(doubleValue)] ? [value doubleValue] : 1.0;
+        if (!isfinite(number)) number = 1.0;
+        // 15 discrete positions, 5% increments from 70% to 140%.
+        number = fmax(0.70, fmin(1.40, round(number * 20.0) / 20.0));
+        stored = @(number);
+    } else {
+        stored = @([value boolValue]);
+    }
+
+    NSNumber *previous = [self readPreferenceValue:specifier];
+    if ([previous isKindOfClass:NSNumber.class] && fabs(previous.doubleValue - stored.doubleValue) < 0.0001) return;
+
+    CFPreferencesSetAppValue((__bridge CFStringRef)key, (__bridge CFPropertyListRef)stored,
         (__bridge CFStringRef)DuoPreferencesDomain);
     CFPreferencesAppSynchronize((__bridge CFStringRef)DuoPreferencesDomain);
     CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
         DuoPreferencesNotification, NULL, NULL, YES);
+    if ([key isEqualToString:@"SizeScale"] && self.duoSizeLabel) {
+        [self reloadSpecifier:self.duoSizeLabel animated:NO];
+    }
+}
+
+- (void)resetSize:(PSSpecifier *)specifier {
+    (void)specifier;
+    [self setPreferenceValue:@(1.0) specifier:self.duoSizeSlider];
+    if (self.duoSizeSlider) [self reloadSpecifier:self.duoSizeSlider animated:NO];
+    if (self.duoSizeLabel) [self reloadSpecifier:self.duoSizeLabel animated:NO];
 }
 
 - (NSString *)developerName:(PSSpecifier *)specifier {
