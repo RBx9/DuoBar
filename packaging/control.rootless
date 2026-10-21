@@ -1,0 +1,15 @@
+Package: local.duobar.rootless
+Name: DuoBar (Rootless)
+Version: 0.2.3
+Architecture: iphoneos-arm64
+Description: DuoBar circular battery, Wi-Fi and cellular indicator for iOS 16 Rootless.
+ Includes a live adjustable 70%-140% size slider, Settings integration,
+ charging and Low Power Mode colors, and Control Center layout improvements.
+ Rootless Dopamine edition. First release needs real-device validation.
+Maintainer: RBx9
+Author: RBx9
+Homepage: https://github.com/RBx9/DuoBar
+Section: Tweaks
+Depends: mobilesubstrate, preferenceloader, firmware (>= 16.0), firmware (<< 17.0)
+Conflicts: local.duobar
+Tag: role::tweak

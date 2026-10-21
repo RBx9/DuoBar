@@ -1,0 +1,50 @@
+name: Publish DuoBar Rootless v0.2.3
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-rootless.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish-rootless:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the verified standard Rootless CI installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run download 39542144641 --repo "$GITHUB_REPOSITORY" \
+            --name DuoBar-v0.2.3-rootless-test --dir .
+          test -f DuoBar_0.2.3_Rootless.deb
+          test -f SHA256SUMS-rootless.txt
+          sha256sum --check SHA256SUMS-rootless.txt
+          echo "ac9e458d91c71bf1521a5f46c4f93aae7af8ce5aa5985435ca743a48d215abac  DuoBar_0.2.3_Rootless.deb" | sha256sum -c -
+          test "$(dpkg-deb -f DuoBar_0.2.3_Rootless.deb Package)" = "local.duobar.rootless"
+          test "$(dpkg-deb -f DuoBar_0.2.3_Rootless.deb Version)" = "0.2.3"
+          test "$(dpkg-deb -f DuoBar_0.2.3_Rootless.deb Architecture)" = "iphoneos-arm64"
+          dpkg-deb --contents DuoBar_0.2.3_Rootless.deb | tee package-contents.txt
+          grep -Fq 'var/jb/Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib' package-contents.txt
+          grep -Fq 'var/jb/Library/PreferenceBundles/DuoBarPrefs.bundle/' package-contents.txt
+          grep -Fq 'var/jb/Library/PreferenceLoader/Preferences/DuoBar.plist' package-contents.txt
+      - name: Publish Rootless GitHub release with device-test warning
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view v0.2.3-rootless.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Rootless release already exists; refusing to overwrite assets" >&2
+            exit 1
+          fi
+          gh release create v0.2.3-rootless.1 \
+            DuoBar_0.2.3_Rootless.deb SHA256SUMS-rootless.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "DuoBar (Rootless) v0.2.3 — Initial iOS 16 Build" \
+            --notes-file docs/RELEASE-v0.2.3-rootless.md --prerelease

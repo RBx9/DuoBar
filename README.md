@@ -15,7 +15,7 @@ Developed by **RBx9** · [Twitter / X: @RedaBuali](https://twitter.com/RedaBuali
 3. Refresh sources, open **RBx9 Repo**, and install **DuoBar**.
 4. Respring, then open **Settings → DuoBar** to configure it.
 
-This source is shared with future RBx9 tweaks, so you won't need to add a new source for each release. The included installer requires **Dopamine RootHide on iOS 16**.
+The **RBx9 Repo** hosts two distinct iOS 16 packages: **DuoBar (RootHide)** for Dopamine RootHide and **DuoBar (Rootless)** for standard Rootless/Dopamine. Install only the package matching your jailbreak.
 
 ## Download .deb manually
 
@@ -23,7 +23,9 @@ This source is shared with future RBx9 tweaks, so you won't need to add a new so
 
 [All releases](https://github.com/RBx9/DuoBar/releases) · [Previous v0.2.2](https://github.com/RBx9/DuoBar/releases/tag/v0.2.2)
 
-No compiling is needed. The supplied package uses RootHide’s `iphoneos-arm64e` package format.
+**Standard Rootless edition:** [Rootless release](https://github.com/RBx9/DuoBar/releases/tag/v0.2.3-rootless.1) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. The initial Rootless build is CI-verified but still needs an on-device test.
+
+No compiling is needed. The RootHide package uses `iphoneos-arm64e`; standard Rootless uses `iphoneos-arm64`.
 
 ## Features
 
