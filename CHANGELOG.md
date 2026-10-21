@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4 beta 5 — Control Center hotspot image fallback
+
+- Reads the hotspot glyph from either the status-bar image view or its layer contents.
+- Forces the inner glyph view to lay out after Control Center positions DuoBar.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
 ## 0.2.4 beta 4 — Native Personal Hotspot symbol
 
 - Reuses the chain-link image supplied by iOS and scales it inside DuoBar.

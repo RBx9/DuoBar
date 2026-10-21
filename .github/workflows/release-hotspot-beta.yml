@@ -6,6 +6,7 @@ on:
       - 'v0.2.4-beta.2'
       - 'v0.2.4-beta.3'
       - 'v0.2.4-beta.4'
+      - 'v0.2.4-beta.5'
 
 permissions:
   contents: write
@@ -32,7 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           beta="${GITHUB_REF_NAME##*.}"
-          if [[ "$beta" != "2" && "$beta" != "3" && "$beta" != "4" ]]; then
+          if [[ "$beta" != "2" && "$beta" != "3" && "$beta" != "4" && "$beta" != "5" ]]; then
             echo "Unsupported beta tag: $GITHUB_REF_NAME" >&2
             exit 1
           fi
@@ -74,7 +75,7 @@ jobs:
           body: |
             RootHide-only test build for the Personal Hotspot status-bar fix.
 
-            This beta reuses the native iOS Personal Hotspot chain-link image inside DuoBar when available, with Apple's `link` symbol as a fallback. Live behavior still needs confirmation on an iPhone.
+            This beta reuses the native iOS Personal Hotspot chain-link image inside DuoBar when available, including when Control Center exposes the glyph through its layer contents, with Apple's `link` symbol as a fallback. Live behavior still needs confirmation on an iPhone.
 
             Install the attached `DuoBar_0.2.4-beta${{ steps.version.outputs.beta }}_RootHide.deb` with a RootHide-compatible package manager and respring. Please test in Settings while connected to a Personal Hotspot and in Control Center.
 

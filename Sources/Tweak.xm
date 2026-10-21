@@ -204,6 +204,19 @@ static void DuoAppendImageName(NSMutableArray<NSString *> *values, id object,
     }
 }
 
+static UIImage *DuoHotspotImageForView(UIView *view) {
+    if ([view isKindOfClass:UIImageView.class]) {
+        UIImage *image = ((UIImageView *)view).image;
+        if (image) return image;
+    }
+    id contents = view.layer.contents;
+    CFTypeRef contentRef = (__bridge CFTypeRef)contents;
+    if (contentRef && CFGetTypeID(contentRef) == CGImageGetTypeID()) {
+        return [UIImage imageWithCGImage:(CGImageRef)contentRef];
+    }
+    return nil;
+}
+
 // iOS sometimes supplies the Personal Hotspot chain as an unnamed template
 // image. Its small, wide two-link silhouette gives us a fallback when UIKit
 // exposes no accessibility label or asset name.
@@ -325,20 +338,18 @@ static BOOL DuoIsHotspotIndicator(UIView *view) {
         view.accessibilityLabel.lowercaseString ?: @"",
         view.accessibilityIdentifier.lowercaseString ?: @"",
         nil];
-    if ([view isKindOfClass:UIImageView.class]) {
-        UIImage *image = ((UIImageView *)view).image;
-        if (image) {
-            if (DuoImageLooksLikeChainLink(image)) return YES;
-            [tokens addObject:image.description.lowercaseString ?: @""];
-            DuoAppendImageName(tokens, image, @"imageName");
-            DuoAppendImageName(tokens, image, @"_imageName");
-            DuoAppendImageName(tokens, image, @"symbolImageName");
-            DuoAppendImageName(tokens, image, @"_symbolName");
-            id asset = [image respondsToSelector:@selector(imageAsset)] ? image.imageAsset : nil;
-            if (asset) {
-                [tokens addObject:[asset description].lowercaseString ?: @""];
-                DuoAppendImageName(tokens, asset, @"name");
-            }
+    UIImage *image = DuoHotspotImageForView(view);
+    if (image) {
+        if (DuoImageLooksLikeChainLink(image)) return YES;
+        [tokens addObject:image.description.lowercaseString ?: @""];
+        DuoAppendImageName(tokens, image, @"imageName");
+        DuoAppendImageName(tokens, image, @"_imageName");
+        DuoAppendImageName(tokens, image, @"symbolImageName");
+        DuoAppendImageName(tokens, image, @"_symbolName");
+        id asset = [image respondsToSelector:@selector(imageAsset)] ? image.imageAsset : nil;
+        if (asset) {
+            [tokens addObject:[asset description].lowercaseString ?: @""];
+            DuoAppendImageName(tokens, asset, @"name");
         }
     }
     for (NSString *value in tokens) {
@@ -415,9 +426,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
             cellularBars = MAX(cellularBars, DuoBars((_UIStatusBarSignalView *)icon, 4));
         } else if (DuoIsHotspotIndicator(icon)) {
             hotspotVisible = YES;
-            if ([icon isKindOfClass:UIImageView.class]) {
-                hotspotImage = ((UIImageView *)icon).image ?: hotspotImage;
-            }
+            hotspotImage = DuoHotspotImageForView(icon) ?: hotspotImage;
         }
     }
 
@@ -540,6 +549,8 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     [CATransaction setDisableActions:YES];
     if (self.glyph.superview != container) [container addSubview:self.glyph];
     self.glyph.frame = CGRectMake(x, y, width, height);
+    [self.glyph setNeedsLayout];
+    [self.glyph layoutIfNeeded];
     self.glyph.layer.zPosition = 100;
     self.glyph.hidden = NO;
     for (UIView *icon in self.icons) {
