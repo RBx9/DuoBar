@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.4 beta 8 — Rotation lock and status-bar transitions
+
+- Restore a safe Control Center rotation-lock adjustment, moving an overlapping lock indicator just LEFT of the DuoBar ring.
+- Preserve and restore UIKit's original orientation-icon transform when Control Center closes or the tweak is switched off.
+- Re-cover native battery/Wi-Fi/cellular layers synchronously after UIKit layout rather than allowing a visible stock-icon flash before the next deferred redraw.
+- Render new status-bar containers in the same layout cycle to reduce transition flashes.
+- Keep the working hotspot link inside the DuoBar circle and retain the size slider.
+- Test build only; leave public Sileo v0.2.3 unchanged.
+
 ## 0.2.4 beta 7 — Restore hotspot glyph and stabilize transitions
 
 - Detect Personal Hotspot chain symbols even when iOS exposes them as vector/template images.
