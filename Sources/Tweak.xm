@@ -437,17 +437,24 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
         DuoLastBatteryLowPower = battery.saverModeActive;
         DuoLastBatteryColor = [battery.bodyColor colorWithAlphaComponent:1];
     }
-    // Control Center can remove its native battery view when a Personal
-    // Hotspot indicator replaces the Wi-Fi status item. Preserve DuoBar
-    // using the last valid battery reading from another status bar.
-    BOOL ccHotspotFallback = !battery && hotspotVisible && DuoControlCenterVisible(container);
+    // Some per-app status bars and Control Center presentations omit the
+    // native battery view. Use UIDevice's reading so the whole DuoBar remains
+    // available wherever a battery glyph is not present in this container.
+    BOOL batteryFallback = !battery;
     double fallbackCharge = DuoLastBatteryLevel;
-    if (ccHotspotFallback && !(isfinite(fallbackCharge) && fallbackCharge >= 0 && fallbackCharge <= 1)) {
+    BOOL fallbackCharging = DuoLastBatteryCharging;
+    BOOL fallbackLowPower = DuoLastBatteryLowPower;
+    if (batteryFallback) {
         UIDevice *device = UIDevice.currentDevice;
         device.batteryMonitoringEnabled = YES;
-        fallbackCharge = device.batteryLevel;
+        if (!isfinite(fallbackCharge) || fallbackCharge < 0 || fallbackCharge > 1) {
+            fallbackCharge = device.batteryLevel;
+        }
+        fallbackCharging = device.batteryState == UIDeviceBatteryStateCharging ||
+                           device.batteryState == UIDeviceBatteryStateFull;
+        fallbackLowPower = NSProcessInfo.processInfo.isLowPowerModeEnabled;
     }
-    if ((!battery && (!ccHotspotFallback || !isfinite(fallbackCharge) ||
+    if ((!battery && (!isfinite(fallbackCharge) ||
                       fallbackCharge < 0 || fallbackCharge > 1)) ||
         CGRectIsNull(area) || CGRectGetHeight(container.bounds) < 16) {
         self.glyph.hidden = YES;
@@ -457,8 +464,8 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     }
 
     self.glyph.charge = battery ? battery.chargePercent : fallbackCharge;
-    self.glyph.charging = battery ? (battery.chargingState != 0) : DuoLastBatteryCharging;
-    self.glyph.lowPower = battery ? battery.saverModeActive : DuoLastBatteryLowPower;
+    self.glyph.charging = battery ? (battery.chargingState != 0) : fallbackCharging;
+    self.glyph.lowPower = battery ? battery.saverModeActive : fallbackLowPower;
     self.glyph.hotspotActive = hotspotVisible;
     self.glyph.hotspotImage = hotspotImage;
     self.glyph.wifiVisible = wifiVisible && !hotspotVisible;
@@ -614,7 +621,6 @@ static void DuoUpdateContainer(UIView *container) {
 static void DuoReloadPreferences(void) {
     BOOL enabled = DuoReadEnabled();
     CGFloat newScale = DuoReadSizeScale();
-    if (enabled == DuoEnabled && fabs(newScale - DuoSizeScale) < 0.001) return;
     DuoEnabled = enabled;
     DuoSizeScale = newScale;
     for (_UIStatusBarStringView *view in DuoPercentageViews.allObjects) DuoSyncPercentage(view);
@@ -782,6 +788,12 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
 %hook _UIStatusBarForegroundView
 - (void)layoutSubviews {
     %orig;
+    DuoScanHotspotIndicators(self);
+    DuoUpdateContainer(self);
+}
+- (void)didMoveToWindow {
+    %orig;
+    DuoScanHotspotIndicators(self);
     DuoUpdateContainer(self);
 }
 %end
@@ -791,6 +803,12 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
 %hook _UIStatusBar
 - (void)layoutSubviews {
     %orig;
+    DuoScanHotspotIndicators(self);
+    DuoUpdateContainer(self);
+}
+- (void)didMoveToWindow {
+    %orig;
+    DuoScanHotspotIndicators(self);
     DuoUpdateContainer(self);
 }
 %end
@@ -800,6 +818,12 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
 %hook CCUIStatusBar
 - (void)layoutSubviews {
     %orig;
+    DuoScanHotspotIndicators(self);
+    DuoUpdateContainer(self);
+}
+- (void)didMoveToWindow {
+    %orig;
+    DuoScanHotspotIndicators(self);
     DuoUpdateContainer(self);
 }
 %end
@@ -839,12 +863,18 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
         CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL,
             DuoPreferencesDidChange, CFSTR("local.duobar/preferences.changed"), NULL,
             CFNotificationSuspensionBehaviorDeliverImmediately);
-        DuoActivationObserver = [NSNotificationCenter.defaultCenter
-            addObserverForName:UIApplicationDidBecomeActiveNotification object:nil
-            queue:NSOperationQueue.mainQueue usingBlock:^(NSNotification *notification) {
+        void (^refreshStatusBars)(NSNotification *) = ^(NSNotification *notification) {
                 (void)notification;
                 DuoReloadPreferences();
-            }];
+            };
+        NSNotificationCenter *notificationCenter = NSNotificationCenter.defaultCenter;
+        id foregroundObserver = [notificationCenter addObserverForName:
+            UIApplicationWillEnterForegroundNotification object:nil queue:NSOperationQueue.mainQueue
+            usingBlock:refreshStatusBars];
+        id activeObserver = [notificationCenter addObserverForName:
+            UIApplicationDidBecomeActiveNotification object:nil queue:NSOperationQueue.mainQueue
+            usingBlock:refreshStatusBars];
+        DuoActivationObserver = @[foregroundObserver, activeObserver];
         if (DuoSpringBoard && NSClassFromString(@"_UIStatusBarStringView")) %init(DuoPercentageHooks);
         %init(DuoBatteryHooks);
         %init(DuoSignalDataHooks);

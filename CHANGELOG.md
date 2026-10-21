@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4 beta 6 — Keep DuoBar visible in apps
+
+- Use the device battery reading when an app's status-bar container has no native battery view.
+- Refresh all status-bar controllers as an app enters the foreground and becomes active.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
 ## 0.2.4 beta 5 — Control Center hotspot image fallback
 
 - Reads the hotspot glyph from either the status-bar image view or its layer contents.
