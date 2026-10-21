@@ -25,6 +25,7 @@
 @interface _UIStatusBarCellularSignalView : _UIStatusBarSignalView @end
 @interface _UIStatusBarForegroundView : UIView @end
 @interface _UIStatusBar : UIView @end
+@interface CCUIStatusBar : UIView @end
 @interface _UIStatusBarStringView : UIView
 @property(nonatomic, copy) NSString *text;
 @end
@@ -38,6 +39,7 @@ static BOOL DuoLastBatteryLowPower = NO;
 static UIColor *DuoLastBatteryColor;
 static Class DuoBatteryClass, DuoWifiClass, DuoCellularClass, DuoForegroundClass, DuoStatusBarClass;
 @class DuoStatusController;
+static void DuoScanHotspotIndicators(UIView *container);
 static BOOL DuoEnabled = YES;
 static CGFloat DuoSizeScale = 1.0;
 
@@ -170,6 +172,9 @@ static void DuoCoverNative(UIView *host) {
 static UIView *DuoStatusContainer(UIView *view) {
     UIView *fallback = nil;
     for (UIView *ancestor = view.superview; ancestor; ancestor = ancestor.superview) {
+        NSString *name = NSStringFromClass(ancestor.class);
+        if ([name isEqualToString:@"CCUIStatusBar"] ||
+            [name containsString:@"ControlCenterOverlay"]) return ancestor;
         if (DuoForegroundClass && [ancestor isKindOfClass:DuoForegroundClass]) return ancestor;
         if (DuoStatusBarClass && [ancestor isKindOfClass:DuoStatusBarClass]) fallback = ancestor;
     }
@@ -199,6 +204,104 @@ static void DuoAppendImageName(NSMutableArray<NSString *> *values, id object,
     }
 }
 
+// iOS sometimes supplies the Personal Hotspot chain as an unnamed template
+// image. Its small, wide two-link silhouette gives us a fallback when UIKit
+// exposes no accessibility label or asset name.
+static BOOL DuoImageLooksLikeChainLink(UIImage *image) {
+    CGImageRef source = image.CGImage;
+    if (!source) return NO;
+    size_t sourceWidth = CGImageGetWidth(source);
+    size_t sourceHeight = CGImageGetHeight(source);
+    if (sourceWidth < 8 || sourceHeight < 6 || sourceWidth > 256 || sourceHeight > 192) return NO;
+    CGFloat aspect = (CGFloat)sourceWidth / (CGFloat)sourceHeight;
+    if (aspect < 1.25 || aspect > 2.8) return NO;
+
+    enum { Width = 48, Height = 32, PixelCount = Width * Height };
+    uint8_t pixels[PixelCount * 4] = {0};
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    if (!colorSpace) return NO;
+    CGContextRef bitmap = CGBitmapContextCreate(pixels, Width, Height, 8, Width * 4,
+        colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+    CGColorSpaceRelease(colorSpace);
+    if (!bitmap) return NO;
+    CGContextClearRect(bitmap, CGRectMake(0, 0, Width, Height));
+    CGContextSetBlendMode(bitmap, kCGBlendModeCopy);
+    CGContextDrawImage(bitmap, CGRectMake(0, 0, Width, Height), source);
+    CGContextRelease(bitmap);
+
+    uint8_t foreground[PixelCount] = {0};
+    int minX = Width, minY = Height, maxX = -1, maxY = -1, ink = 0;
+    for (int y = 0; y < Height; y++) {
+        for (int x = 0; x < Width; x++) {
+            int index = y * Width + x;
+            if (pixels[index * 4 + 3] < 80) continue;
+            foreground[index] = 1;
+            ink++;
+            minX = MIN(minX, x); maxX = MAX(maxX, x);
+            minY = MIN(minY, y); maxY = MAX(maxY, y);
+        }
+    }
+    if (maxX <= minX || maxY <= minY) return NO;
+    int boxWidth = maxX - minX + 1, boxHeight = maxY - minY + 1;
+    CGFloat fill = (CGFloat)ink / (CGFloat)(boxWidth * boxHeight);
+    if ((CGFloat)boxWidth / (CGFloat)boxHeight < 1.25 ||
+        (CGFloat)boxWidth / (CGFloat)boxHeight > 2.8 || fill < 0.08 || fill > 0.62) return NO;
+
+    // Flood-fill transparent pixels from the crop boundary. Enclosed regions
+    // are the two holes in a chain-link mark.
+    uint8_t exterior[PixelCount] = {0};
+    int queue[PixelCount];
+    int head = 0, tail = 0;
+    for (int y = minY; y <= maxY; y++) {
+        for (int x = minX; x <= maxX; x++) {
+            if (x != minX && x != maxX && y != minY && y != maxY) continue;
+            int index = y * Width + x;
+            if (!foreground[index] && !exterior[index]) {
+                exterior[index] = 1;
+                queue[tail++] = index;
+            }
+        }
+    }
+    while (head < tail) {
+        int index = queue[head++];
+        const int neighbors[] = { index - 1, index + 1, index - Width, index + Width };
+        for (int i = 0; i < 4; i++) {
+            int next = neighbors[i];
+            if (next < 0 || next >= PixelCount) continue;
+            int nx = next % Width, ny = next / Width;
+            if (nx < minX || nx > maxX || ny < minY || ny > maxY ||
+                foreground[next] || exterior[next]) continue;
+            exterior[next] = 1;
+            queue[tail++] = next;
+        }
+    }
+    int holes = 0;
+    for (int y = minY; y <= maxY; y++) {
+        for (int x = minX; x <= maxX; x++) {
+            int start = y * Width + x;
+            if (foreground[start] || exterior[start]) continue;
+            holes++;
+            head = 0; tail = 0;
+            exterior[start] = 1;
+            queue[tail++] = start;
+            while (head < tail) {
+                int index = queue[head++];
+                int neighbors[] = { index - 1, index + 1, index - Width, index + Width };
+                for (int i = 0; i < 4; i++) {
+                    int next = neighbors[i];
+                    if (next < 0 || next >= PixelCount) continue;
+                    int nx = next % Width, ny = next / Width;
+                    if (nx < minX || nx > maxX || ny < minY || ny > maxY ||
+                        foreground[next] || exterior[next]) continue;
+                    exterior[next] = 1;
+                    queue[tail++] = next;
+                }
+            }
+        }
+    }
+    return holes == 2;
+}
+
 // Restrict hotspot recognition to status-bar glyphs, never generic app images
 // or the names of Wi-Fi networks on the Settings screen. iOS 16 status images
 // expose their symbol name differently across point releases, so examine the
@@ -208,7 +311,14 @@ static BOOL DuoIsHotspotIndicator(UIView *view) {
     NSString *className = NSStringFromClass(view.class).lowercaseString;
     BOOL statusGlyph = [className containsString:@"statusbar"] ||
                        [className containsString:@"hotspot"] ||
-                       [className containsString:@"tether"];
+                       [className containsString:@"tether"] ||
+                       DuoStatusContainer(view) != nil;
+    for (UIView *ancestor = view.superview; !statusGlyph && ancestor; ancestor = ancestor.superview) {
+        if ([NSStringFromClass(ancestor.class).lowercaseString containsString:@"statusbar"] ||
+            [NSStringFromClass(ancestor.class).lowercaseString containsString:@"controlcenteroverlay"]) {
+            statusGlyph = YES;
+        }
+    }
     if (!statusGlyph) return NO;
     NSMutableArray<NSString *> *tokens = [NSMutableArray arrayWithObjects:
         className,
@@ -218,6 +328,7 @@ static BOOL DuoIsHotspotIndicator(UIView *view) {
     if ([view isKindOfClass:UIImageView.class]) {
         UIImage *image = ((UIImageView *)view).image;
         if (image) {
+            if (DuoImageLooksLikeChainLink(image)) return YES;
             [tokens addObject:image.description.lowercaseString ?: @""];
             DuoAppendImageName(tokens, image, @"imageName");
             DuoAppendImageName(tokens, image, @"_imageName");
@@ -270,6 +381,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     UIView *container = self.container;
     if (!container || self.updating) return;
     self.updating = YES;
+    DuoScanHotspotIndicators(container);
     for (UIView *indicator in self.shiftedIndicators.allObjects) DuoRestoreShiftedIndicator(indicator);
     [self.shiftedIndicators removeAllObjects];
     if (!DuoEnabled) {
@@ -479,7 +591,6 @@ static void DuoScanHotspotIndicators(UIView *container) {
 }
 
 static void DuoUpdateContainer(UIView *container) {
-    DuoScanHotspotIndicators(container);
     DuoStatusController *controller = objc_getAssociatedObject(container, &DuoContainerKey);
     [controller update];
 }
@@ -669,6 +780,15 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
 %end
 %end
 
+%group DuoControlCenterStatusBarHooks
+%hook CCUIStatusBar
+- (void)layoutSubviews {
+    %orig;
+    DuoUpdateContainer(self);
+}
+%end
+%end
+
 static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
     if (!cls || ![cls isSubclassOfClass:UIView.class]) return NO;
     for (NSString *selector in selectors) {
@@ -716,6 +836,7 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
         %init(DuoCellularHooks);
         if (NSClassFromString(@"_UIStatusBarImageView")) %init(DuoHotspotImageHooks);
         %init(DuoStatusBarHooks);
+        if (NSClassFromString(@"CCUIStatusBar")) %init(DuoControlCenterStatusBarHooks);
         if (DuoForegroundClass) {
             %init(DuoForegroundHooks);
         }

@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scheme: [roothide, rootless]
+        scheme: [roothide]
     steps:
       - uses: actions/checkout@v4
       - name: Install build tools
@@ -42,23 +42,11 @@ jobs:
           SCHEME: ${{ matrix.scheme }}
         run: |
           set -euo pipefail
-          if [ "$SCHEME" = rootless ]; then
-            cp packaging/control.rootless control
-            package_id=local.duobar.rootless
-            arch=iphoneos-arm64
-            prefix=var/jb/
-            suffix=Rootless
-          else
-            package_id=local.duobar
-            arch=iphoneos-arm64e
-            prefix=
-            suffix=RootHide
-          fi
-          if [ "$SCHEME" = rootless ]; then
-            gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME="$SCHEME" TARGET=iphone:clang:16.5:16.0 ARCHS=arm64
-          else
-            gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME="$SCHEME" TARGET=iphone:clang:16.5:16.0
-          fi
+          package_id=local.duobar
+          arch=iphoneos-arm64e
+          prefix=
+          suffix=RootHide
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME="$SCHEME" TARGET=iphone:clang:16.5:16.0
           files=(packages/*.deb)
           test "${#files[@]}" -eq 1
           deb="${files[0]}"

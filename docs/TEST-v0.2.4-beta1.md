@@ -9,10 +9,9 @@
 - Existing ordinary Wi-Fi drawing, cellular dots, charging indicators, and adjustable size remain unchanged.
 
 ## Install
-- **RootHide:** `DuoBar_0.2.4-beta1_RootHide.deb` — package `local.duobar`, architecture `iphoneos-arm64e`
-- **Rootless:** `DuoBar_0.2.4-beta1_Rootless.deb` — package `local.duobar.rootless`, architecture `iphoneos-arm64`
+- **RootHide beta only:** `DuoBar_0.2.4-beta1_RootHide.deb` — package `local.duobar`, architecture `iphoneos-arm64e`
 
-Download the matching `.deb` from the latest successful **Build DuoBar Hotspot Beta** run under GitHub Actions. Install it with your compatible package manager, then respring. The RootHide and Rootless builds are separate packages; install only the one matching your jailbreak.
+Download the RootHide `.deb` from the latest successful [Build DuoBar Hotspot Beta](https://github.com/RBx9/DuoBar/actions/workflows/hotspot-beta.yml) run. Install it with your RootHide-compatible package manager, then respring. Rootless beta packaging is deferred until the fix is confirmed and ready for the stable release.
 
 ## Device testing checklist
 1. Join a regular Wi-Fi network and verify the normal in-ring Wi-Fi symbol.
