@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.5 — Personal Hotspot and Control Center fixes (RootHide stable)
+
+- Display the iOS Personal Hotspot chain-link symbol inside the DuoBar circle rather than next to the status-bar indicators.
+- Move the rotation-lock status icon beside DuoBar in Control Center with a 10-point target gap, using window-space positioning and restoring the original transform when inactive.
+- Prevent stock battery and cellular indicators briefly flashing when opening or closing Control Center.
+- Preserve the 70%–140% size slider, Settings icon, Wi-Fi/cellular display, and live on/off switch.
+- Promoted from user-tested v0.2.4 Beta 10. The separate Rootless package remains at v0.2.3.
+
 ## 0.2.4 beta 10 — Rotation-lock status hierarchy
 
 - Search the Control Center status container and, if needed, the enclosing window for the overlapping rotation-lock image instead of assuming it is a DuoBar child.

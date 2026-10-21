@@ -19,9 +19,9 @@ The **RBx9 Repo** hosts two distinct iOS 16 packages: **DuoBar (RootHide)** for 
 
 ## Download .deb manually
 
-[**Download DuoBar v0.2.3 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v0.2.3/DuoBar_0.2.3_RootHide.deb)
+[**Download DuoBar v0.2.5 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v0.2.5/DuoBar_0.2.5_RootHide.deb)
 
-[All releases](https://github.com/RBx9/DuoBar/releases) · [Previous v0.2.2](https://github.com/RBx9/DuoBar/releases/tag/v0.2.2)
+[All releases](https://github.com/RBx9/DuoBar/releases) · [Previous stable v0.2.3](https://github.com/RBx9/DuoBar/releases/tag/v0.2.3)
 
 **Standard Rootless edition:** [Rootless release](https://github.com/RBx9/DuoBar/releases/tag/v0.2.3-rootless.1) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. The initial Rootless build is CI-verified but still needs an on-device test.
 
@@ -36,6 +36,7 @@ No compiling is needed. The RootHide package uses `iphoneos-arm64e`; standard Ro
 - A persistent **Enable DuoBar** switch in **Settings → DuoBar**.
 - Adjustable **DuoBar Size** slider (70%–140%), a current-size percentage, and Reset Size to 100%. Changes apply without respringing.
 - Fixes for duplicate battery percentage and rotation-lock icon overlap in Control Center.
+- **v0.2.5 RootHide:** Personal Hotspot chain-link inside DuoBar, reliable Control Center rotation-lock spacing and no brief native-icon flash during transitions.
 - A bundled Settings icon and organized preference page with direct **RBx9 Repo** and **Sileo source** links.
 - v0.2.2 fixes PreferenceLoader icon discovery by including icon sizes in the actual preferences bundle.
 
@@ -52,11 +53,11 @@ Existing DuoBar installations can be upgraded with the same package. See the [in
 
 The supplied download targets **iOS 16.x and Dopamine RootHide**, with tweak injection and PreferenceLoader. PreferenceLoader is declared as a package dependency. This download is not a standard Dopamine/rootless package.
 
-The Control Center positioning fix was confirmed on a test device. The v0.2.3 size-slider beta was tested and approved for stable release. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
+The v0.2.5 RootHide fixes were tested on-device through Beta 10 and approved for stable release. The separate Rootless edition remains at v0.2.3 pending device validation of the new changes. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
 
 ## Build from source
 
-The included [Build DuoBar workflow](.github/workflows/build.yml) runs manually through GitHub Actions on macOS. It produces separate RootHide and standard rootless artifacts; the workflow itself has not been run for this release.
+The stable RootHide installer is compiled by a dedicated GitHub Actions workflow with package metadata and Settings icon verification. Rootless is a separate package and has not been updated with v0.2.5 changes.
 
 Local builds require Theos, an iOS SDK, and a compatible compiler. RootHide builds require the [RootHide Theos fork](https://github.com/roothide/theos):
 
