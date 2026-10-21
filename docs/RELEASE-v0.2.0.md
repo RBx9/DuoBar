@@ -10,7 +10,9 @@ An iPhone Duo-inspired circular status bar for iOS 16 with Dopamine RootHide, de
 - **Settings → DuoBar → Enable DuoBar** to restore stock icons or enable the circular design.
 - Developer credit, description, and [Twitter / X: @RedaBuali](https://twitter.com/RedaBuali).
 
-Download **DuoBar_0.2.0_RootHide.deb**, install it using your RootHide package manager or compatible Filza, and respring once. Reopen Settings and apps after installation. Existing DuoBar installations can be upgraded with this package.
+**Recommended Sileo installation:** Open **Sileo → Sources → +**, add **https://rbx9.github.io/** (RBx9 Repo), refresh, find **DuoBar**, and install it. The same source will host future compatible RBx9 tweaks.
+
+**Manual installation:** Download **DuoBar_0.2.0_RootHide.deb**, install it using your RootHide package manager or compatible Filza, and respring once. Reopen Settings and apps after installation. Existing DuoBar installations can be upgraded with this package.
 
 The supplied Debian package targets `iphoneos-arm64e` for **Dopamine RootHide**. It requires tweak injection and PreferenceLoader. Package and signature checks passed; v0.2.0's new Settings functionality still needs on-device verification.
 
