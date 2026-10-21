@@ -1,0 +1,52 @@
+name: Build DuoBar
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package (${{ matrix.scheme }})
+    runs-on: macos-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        scheme: [roothide, rootless]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packaging and signing tools
+        run: brew install make ldid dpkg gnu-tar xz rsync
+
+      - name: Configure Theos path
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+
+      - name: Fetch RootHide Theos and iOS 16.5 SDK
+        run: |
+          git clone --recursive --depth 1 https://github.com/roothide/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+
+      - name: Build package
+        env:
+          PACKAGE_SCHEME: ${{ matrix.scheme }}
+        run: |
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME="$PACKAGE_SCHEME" TARGET=iphone:clang:16.5:16.0
+          for package in packages/*.deb; do
+            dpkg-deb --info "$package"
+            dpkg-deb --contents "$package"
+          done
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuoBar-${{ matrix.scheme }}
+          path: packages/*.deb
+          if-no-files-found: error

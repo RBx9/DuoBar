@@ -1,0 +1,283 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1020" height="800" viewBox="0 0 1020 800" role="img" aria-labelledby="title desc">
+<title id="title">DuoBar combined circular status icon</title>
+<desc id="desc">Design mockup of a battery ring with percentage above, Wi-Fi in the center and four cellular dots below. Examples show fifty percent normal, sixteen percent low battery, eighty percent charging, sixty percent Low Power Mode, and separate connectivity-strength examples. This is not a device screenshot or a validation result.</desc>
+<rect width="1020" height="800" rx="28" fill="#ffffff"/>
+<g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">
+<text x="34" y="48" font-size="28" font-weight="700" fill="#15171c">DuoBar</text>
+<text x="34" y="76" font-size="14" fill="#626b7b">Battery ring · Wi-Fi center · cellular dots</text>
+<text x="986" y="48" text-anchor="end" font-size="12" fill="#626b7b">Design mockup</text>
+
+<rect x="24" y="104" width="474" height="624" rx="22" fill="#f4f4f5"/>
+<text x="49" y="140" font-size="12" font-weight="700" letter-spacing="1.2" fill="#667080">LIGHT BACKGROUND</text>
+<text x="49" y="190" font-size="16" font-weight="600" fill="#15171c">Normal</text>
+<text x="49" y="214" font-size="12" fill="#667080">Left arc filled</text>
+<g transform="translate(350 159) scale(2.6)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#15171c">50</text>
+<g transform="translate(9 13) scale(.78)" fill="#15171c" stroke="#15171c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+</g>
+<path d="M49 252 H473" stroke="#e3e4e8"/>
+<text x="49" y="294" font-size="16" font-weight="600" fill="#15171c">Low battery</text>
+<text x="49" y="318" font-size="12" fill="#667080">Short red arc</text>
+<g transform="translate(350 263) scale(2.6)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 3.114198 18.719333" fill="none" stroke="#ff3b30" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#15171c">16</text>
+<g transform="translate(9 13) scale(.78)" fill="#15171c" stroke="#15171c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+</g>
+<path d="M49 356 H473" stroke="#e3e4e8"/>
+<text x="49" y="398" font-size="16" font-weight="600" fill="#15171c">Charging</text>
+<text x="49" y="422" font-size="12" fill="#667080">Green arc + bolt</text>
+<g transform="translate(350 367) scale(2.6)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#34c759" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 28.992081 17.453693" fill="none" stroke="#34c759" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#15171c">80</text>
+<g transform="translate(9 13) scale(.78)" fill="#15171c" stroke="#15171c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+<path d="M28.7 1.2 L25.8 4.8 H27.5 L26.8 7.5 L29.8 3.8 H28 Z" fill="#34c759"/>
+</g>
+<path d="M49 460 H473" stroke="#e3e4e8"/>
+<text x="49" y="502" font-size="16" font-weight="600" fill="#15171c">Low Power Mode</text>
+<text x="49" y="526" font-size="12" fill="#667080">Yellow arc</text>
+<g transform="translate(350 471) scale(2.6)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffcc00" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.684323 11.301175" fill="none" stroke="#ffcc00" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#15171c">60</text>
+<g transform="translate(9 13) scale(.78)" fill="#15171c" stroke="#15171c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+</g>
+<path d="M49 583 H473" stroke="#e3e4e8"/>
+<text x="49" y="608" font-size="11" fill="#667080">Connectivity examples · same battery level</text>
+<g transform="translate(67 623) scale(1.5)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#15171c">50</text>
+<g transform="translate(9 13) scale(.78)" fill="#15171c" stroke="#15171c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+</g>
+<text x="91" y="700" text-anchor="middle" font-size="9" fill="#667080">Wi-Fi 3 · cell 4</text>
+<g transform="translate(179 623) scale(1.5)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#15171c">50</text>
+<g transform="translate(9 13) scale(.78)" fill="#15171c" stroke="#15171c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="0.18"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#15171c" opacity="0.18"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#15171c" opacity="0.18"/>
+</g>
+<text x="203" y="700" text-anchor="middle" font-size="9" fill="#667080">Wi-Fi 2 · cell 2</text>
+<g transform="translate(291 623) scale(1.5)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#15171c">50</text>
+<g transform="translate(9 13) scale(.78)" fill="#15171c" stroke="#15171c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="0.18"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="0.18"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#15171c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#15171c" opacity="0.18"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#15171c" opacity="0.18"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#15171c" opacity="0.18"/>
+</g>
+<text x="315" y="700" text-anchor="middle" font-size="9" fill="#667080">Wi-Fi 1 · cell 1</text>
+<g transform="translate(403 623) scale(1.5)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#15171c" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#15171c">50</text>
+<circle cx="7.5" cy="28" r="1.65" fill="#15171c" opacity="0.18"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#15171c" opacity="0.18"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#15171c" opacity="0.18"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#15171c" opacity="0.18"/>
+</g>
+<text x="427" y="700" text-anchor="middle" font-size="9" fill="#667080">Wi-Fi off · cell 0</text>
+<rect x="522" y="104" width="474" height="624" rx="22" fill="#15171c"/>
+<text x="547" y="140" font-size="12" font-weight="700" letter-spacing="1.2" fill="#a6afbd">DARK BACKGROUND</text>
+<text x="547" y="190" font-size="16" font-weight="600" fill="#ffffff">Normal</text>
+<text x="547" y="214" font-size="12" fill="#a6afbd">Left arc filled</text>
+<g transform="translate(848 159) scale(2.6)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#ffffff">50</text>
+<g transform="translate(9 13) scale(.78)" fill="#ffffff" stroke="#ffffff" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+</g>
+<path d="M547 252 H971" stroke="#303641"/>
+<text x="547" y="294" font-size="16" font-weight="600" fill="#ffffff">Low battery</text>
+<text x="547" y="318" font-size="12" fill="#a6afbd">Short red arc</text>
+<g transform="translate(848 263) scale(2.6)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 3.114198 18.719333" fill="none" stroke="#ff453a" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#ffffff">16</text>
+<g transform="translate(9 13) scale(.78)" fill="#ffffff" stroke="#ffffff" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+</g>
+<path d="M547 356 H971" stroke="#303641"/>
+<text x="547" y="398" font-size="16" font-weight="600" fill="#ffffff">Charging</text>
+<text x="547" y="422" font-size="12" fill="#a6afbd">Green arc + bolt</text>
+<g transform="translate(848 367) scale(2.6)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#30d158" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 28.992081 17.453693" fill="none" stroke="#30d158" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#ffffff">80</text>
+<g transform="translate(9 13) scale(.78)" fill="#ffffff" stroke="#ffffff" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+<path d="M28.7 1.2 L25.8 4.8 H27.5 L26.8 7.5 L29.8 3.8 H28 Z" fill="#30d158"/>
+</g>
+<path d="M547 460 H971" stroke="#303641"/>
+<text x="547" y="502" font-size="16" font-weight="600" fill="#ffffff">Low Power Mode</text>
+<text x="547" y="526" font-size="12" fill="#a6afbd">Yellow arc</text>
+<g transform="translate(848 471) scale(2.6)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffd60a" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.684323 11.301175" fill="none" stroke="#ffd60a" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#ffffff">60</text>
+<g transform="translate(9 13) scale(.78)" fill="#ffffff" stroke="#ffffff" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+</g>
+<path d="M547 583 H971" stroke="#303641"/>
+<text x="547" y="608" font-size="11" fill="#a6afbd">Connectivity examples · same battery level</text>
+<g transform="translate(565 623) scale(1.5)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#ffffff">50</text>
+<g transform="translate(9 13) scale(.78)" fill="#ffffff" stroke="#ffffff" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+</g>
+<text x="589" y="700" text-anchor="middle" font-size="9" fill="#a6afbd">Wi-Fi 3 · cell 4</text>
+<g transform="translate(677 623) scale(1.5)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#ffffff">50</text>
+<g transform="translate(9 13) scale(.78)" fill="#ffffff" stroke="#ffffff" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="0.18"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#ffffff" opacity="0.18"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#ffffff" opacity="0.18"/>
+</g>
+<text x="701" y="700" text-anchor="middle" font-size="9" fill="#a6afbd">Wi-Fi 2 · cell 2</text>
+<g transform="translate(789 623) scale(1.5)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#ffffff">50</text>
+<g transform="translate(9 13) scale(.78)" fill="#ffffff" stroke="#ffffff" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="0.18"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="0.18"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#ffffff" opacity="0.18"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#ffffff" opacity="0.18"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#ffffff" opacity="0.18"/>
+</g>
+<text x="813" y="700" text-anchor="middle" font-size="9" fill="#a6afbd">Wi-Fi 1 · cell 1</text>
+<g transform="translate(901 623) scale(1.5)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" font-weight="900" fill="#ffffff">50</text>
+<circle cx="7.5" cy="28" r="1.65" fill="#ffffff" opacity="0.18"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#ffffff" opacity="0.18"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#ffffff" opacity="0.18"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#ffffff" opacity="0.18"/>
+</g>
+<text x="925" y="700" text-anchor="middle" font-size="9" fill="#a6afbd">Wi-Fi off · cell 0</text>
+<text x="34" y="762" font-size="12" fill="#626b7b">Illustrative values · vector paths match the drawing code · not a device screenshot</text>
+</g></svg>

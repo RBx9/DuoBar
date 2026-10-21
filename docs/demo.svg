@@ -1,0 +1,180 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1000" viewBox="0 0 1400 1000" role="img" aria-labelledby="title desc">
+<title id="title">DuoBar by RBx9 — circular battery, Wi-Fi and cellular status bar</title>
+<desc id="desc">An illustrative before-and-after status-bar design preview in light and dark appearances. DuoBar combines battery percentage and side arcs, Wi-Fi in the center, and four separate cellular dots below. Battery examples show normal fifty percent, low battery sixteen percent, charging eighty percent, and Low Power Mode sixty percent. A settings switch illustration shows Enable DuoBar. This is not a device screenshot; example values are illustrative.</desc>
+<rect width="1400" height="1000" fill="#eef1f6"/>
+<g font-family="Inter,Arial,DejaVu Sans,sans-serif">
+<g transform="translate(48 40) scale(2.05)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,DejaVu Sans Mono,monospace" font-size="8" font-weight="900" fill="#18202c">50</text>
+<g transform="translate(9 13) scale(0.78)" fill="#18202c" stroke="#18202c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+</g>
+<text x="136" y="94" font-size="56" fill="#18202c" font-weight="750">DuoBar</text>
+<text x="139" y="132" font-size="24" fill="#576579" font-weight="400">Battery · Wi-Fi · Cellular</text>
+<rect x="981" y="44" width="371" height="44" rx="22" fill="#dfe8f8"/>
+<text x="1166.5" y="73" font-size="18" fill="#264c83" font-weight="650" text-anchor="middle">iOS 16 · Dopamine RootHide</text>
+<text x="1352" y="124" font-size="20" fill="#576579" font-weight="400" text-anchor="end">By RBx9  ·  @RedaBuali</text>
+<text x="48" y="185" font-size="26" fill="#18202c" font-weight="650">Three indicators. One circular design.</text>
+<rect x="48" y="212" width="628" height="280" rx="24" fill="#ffffff"/>
+<text x="72" y="249" font-size="15" fill="#657286" font-weight="650">LIGHT APPEARANCE</text>
+<text x="72" y="313" font-size="18" fill="#657286" font-weight="550">Before</text>
+<rect x="180" y="268" width="472" height="70" rx="16" fill="#f2f4f8"/>
+<text x="202" y="313" font-size="25" fill="#18202c" font-weight="650">9:41</text>
+<g transform="translate(508 294) scale(1.7)" fill="#18202c">
+<rect x="0.0" y="9" width="3.3" height="3" rx="1" fill="#18202c"/>
+<rect x="4.7" y="6" width="3.3" height="6" rx="1" fill="#18202c"/>
+<rect x="9.4" y="3" width="3.3" height="9" rx="1" fill="#18202c"/>
+<rect x="14.100000000000001" y="0" width="3.3" height="12" rx="1" fill="#18202c"/>
+</g>
+<g transform="translate(543 293.5) scale(1.35)" fill="#18202c" stroke="#18202c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<g transform="translate(579 294.5) scale(1.6)">
+<rect x="0" y="0" width="23" height="11" rx="2.6" fill="none" stroke="#18202c"/>
+<rect x="1.9" y="1.9" width="9.6" height="7.2" rx="1.1" fill="#18202c"/>
+<rect x="24.4" y="3" width="1.8" height="5" rx="0.8" fill="#18202c"/>
+</g>
+<text x="72" y="413" font-size="18" fill="#18202c" font-weight="700">DuoBar</text>
+<rect x="180" y="356" width="472" height="102" rx="16" fill="#f2f4f8"/>
+<text x="202" y="413" font-size="25" fill="#18202c" font-weight="650">9:41</text>
+<g transform="translate(574 367) scale(2.1)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,DejaVu Sans Mono,monospace" font-size="8" font-weight="900" fill="#18202c">50</text>
+<g transform="translate(9 13) scale(0.78)" fill="#18202c" stroke="#18202c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+</g>
+<rect x="724" y="212" width="628" height="280" rx="24" fill="#15191f"/>
+<text x="748" y="249" font-size="15" fill="#aeb9c9" font-weight="650">DARK APPEARANCE</text>
+<text x="748" y="313" font-size="18" fill="#aeb9c9" font-weight="550">Before</text>
+<rect x="856" y="268" width="472" height="70" rx="16" fill="#232a33"/>
+<text x="878" y="313" font-size="25" fill="#ffffff" font-weight="650">9:41</text>
+<g transform="translate(1184 294) scale(1.7)" fill="#ffffff">
+<rect x="0.0" y="9" width="3.3" height="3" rx="1" fill="#ffffff"/>
+<rect x="4.7" y="6" width="3.3" height="6" rx="1" fill="#ffffff"/>
+<rect x="9.4" y="3" width="3.3" height="9" rx="1" fill="#ffffff"/>
+<rect x="14.100000000000001" y="0" width="3.3" height="12" rx="1" fill="#ffffff"/>
+</g>
+<g transform="translate(1219 293.5) scale(1.35)" fill="#ffffff" stroke="#ffffff" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<g transform="translate(1255 294.5) scale(1.6)">
+<rect x="0" y="0" width="23" height="11" rx="2.6" fill="none" stroke="#ffffff"/>
+<rect x="1.9" y="1.9" width="9.6" height="7.2" rx="1.1" fill="#ffffff"/>
+<rect x="24.4" y="3" width="1.8" height="5" rx="0.8" fill="#ffffff"/>
+</g>
+<text x="748" y="413" font-size="18" fill="#ffffff" font-weight="700">DuoBar</text>
+<rect x="856" y="356" width="472" height="102" rx="16" fill="#232a33"/>
+<text x="878" y="413" font-size="25" fill="#ffffff" font-weight="650">9:41</text>
+<g transform="translate(1250 367) scale(2.1)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,DejaVu Sans Mono,monospace" font-size="8" font-weight="900" fill="#ffffff">50</text>
+<g transform="translate(9 13) scale(0.78)" fill="#ffffff" stroke="#ffffff" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#ffffff" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#ffffff" opacity="1"/>
+</g>
+<rect x="48" y="520" width="1304" height="294" rx="24" fill="#ffffff"/>
+<text x="72" y="563" font-size="25" fill="#18202c" font-weight="650">Battery states at a glance</text>
+<rect x="72" y="588" width="290" height="202" rx="18" fill="#f3f5f9"/>
+<g transform="translate(169 603) scale(3.0)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,DejaVu Sans Mono,monospace" font-size="8" font-weight="900" fill="#18202c">50</text>
+<g transform="translate(9 13) scale(0.78)" fill="#18202c" stroke="#18202c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+</g>
+<text x="217" y="738" font-size="20" fill="#18202c" font-weight="650" text-anchor="middle">Normal</text>
+<text x="217" y="767" font-size="16" fill="#657286" font-weight="400" text-anchor="middle">50% battery</text>
+<rect x="386" y="588" width="290" height="202" rx="18" fill="#fff2f2"/>
+<g transform="translate(483 603) scale(3.0)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 3.114198 18.719333" fill="none" stroke="#ff3b30" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,DejaVu Sans Mono,monospace" font-size="8" font-weight="900" fill="#18202c">16</text>
+<g transform="translate(9 13) scale(0.78)" fill="#18202c" stroke="#18202c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+</g>
+<text x="531" y="738" font-size="20" fill="#18202c" font-weight="650" text-anchor="middle">Low battery</text>
+<text x="531" y="767" font-size="16" fill="#657286" font-weight="400" text-anchor="middle">16% battery</text>
+<rect x="700" y="588" width="290" height="202" rx="18" fill="#eff9f1"/>
+<g transform="translate(797 603) scale(3.0)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#34c759" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 28.992081 17.453693" fill="none" stroke="#34c759" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,DejaVu Sans Mono,monospace" font-size="8" font-weight="900" fill="#18202c">80</text>
+<g transform="translate(9 13) scale(0.78)" fill="#18202c" stroke="#18202c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+<path d="M28.7 1.2 L25.8 4.8 H27.5 L26.8 7.5 L29.8 3.8 H28 Z" fill="#34c759"/>
+</g>
+<text x="845" y="738" font-size="20" fill="#18202c" font-weight="650" text-anchor="middle">Charging</text>
+<text x="845" y="767" font-size="16" fill="#657286" font-weight="400" text-anchor="middle">80% battery</text>
+<rect x="1014" y="588" width="290" height="202" rx="18" fill="#fff9e8"/>
+<g transform="translate(1111 603) scale(3.0)">
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.258330 23.500000" fill="none" stroke="#18202c" stroke-width="2.6" stroke-linecap="round" opacity="0.18"/>
+<path d="M4.741670 23.500000 A13 13 0 0 1 6.041422 8.643761" fill="none" stroke="#ffcc00" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<path d="M25.958578 8.643761 A13 13 0 0 1 27.684323 11.301175" fill="none" stroke="#ffcc00" stroke-width="2.6" stroke-linecap="round" opacity="1"/>
+<text x="16" y="5" dominant-baseline="central" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,DejaVu Sans Mono,monospace" font-size="8" font-weight="900" fill="#18202c">60</text>
+<g transform="translate(9 13) scale(0.78)" fill="#18202c" stroke="#18202c" stroke-width="2.15" stroke-linecap="round">
+<path d="M1.5 4 C5.8 .1 12.2 .1 16.5 4" fill="none" opacity="1"/>
+<path d="M4.4 7.25 C7 5 11 5 13.6 7.25" fill="none" opacity="1"/>
+<circle cx="9" cy="11.1" r="1.6" stroke="none" opacity="1"/></g>
+<circle cx="7.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="13" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="19" cy="30.2" r="1.65" fill="#18202c" opacity="1"/>
+<circle cx="24.5" cy="28" r="1.65" fill="#18202c" opacity="1"/>
+</g>
+<text x="1159" y="738" font-size="20" fill="#18202c" font-weight="650" text-anchor="middle">Low Power Mode</text>
+<text x="1159" y="767" font-size="16" fill="#657286" font-weight="400" text-anchor="middle">60% battery</text>
+<rect x="48" y="842" width="1304" height="94" rx="24" fill="#ffffff"/>
+<text x="72" y="881" font-size="23" fill="#18202c" font-weight="650">Settings → DuoBar → Enable DuoBar</text>
+<text x="72" y="912" font-size="18" fill="#657286" font-weight="400">Turn it off to restore the stock icons.</text>
+<rect x="1214" y="862" width="104" height="54" rx="27" fill="#34c759"/>
+<circle cx="1291" cy="889" r="22" fill="#ffffff"/>
+<text x="48" y="977" font-size="18" fill="#657286" font-weight="400">Design preview · not a device screenshot · illustrative values</text>
+<text x="1352" y="977" font-size="18" fill="#657286" font-weight="400" text-anchor="end">DuoBar 0.2.0</text>
+</g></svg>
