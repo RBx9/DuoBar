@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4 beta 2 — Personal Hotspot indicator compatibility
+
+- Detects unlabeled Personal Hotspot chain glyphs by their rendered shape.
+- Scans both the regular status bar and Control Center for the hotspot indicator.
+- RootHide test build only; Rootless is deferred until the fix is confirmed.
+
 ## 0.2.4 beta 1 — Personal Hotspot indicator compatibility
 
 - Render the Personal Hotspot link symbol inside DuoBar when iOS replaces Wi-Fi with the hotspot status indicator.

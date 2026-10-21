@@ -1,0 +1,70 @@
+name: Publish DuoBar RootHide Beta 2
+
+on:
+  push:
+    tags:
+      - 'v0.2.4-beta.2'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build and publish RootHide beta 2
+    runs-on: macos-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: brew install make ldid dpkg gnu-tar xz rsync
+
+      - name: Configure Theos
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+
+      - name: Fetch RootHide Theos and iOS SDK
+        run: |
+          git clone --recursive --depth 1 https://github.com/roothide/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+
+      - name: Build and verify package
+        shell: bash
+        run: |
+          set -euo pipefail
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide TARGET=iphone:clang:16.5:16.0
+          files=(packages/*.deb)
+          test "${#files[@]}" -eq 1
+          deb="${files[0]}"
+          test "$(dpkg-deb -f "$deb" Package)" = "local.duobar"
+          test "$(dpkg-deb -f "$deb" Version)" = "0.2.4~beta2"
+          test "$(dpkg-deb -f "$deb" Architecture)" = "iphoneos-arm64e"
+          dpkg-deb --contents "$deb" | tee contents.txt
+          grep -Fq 'Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib' contents.txt
+          grep -Fq 'Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarIcon.png' contents.txt
+          grep -Fq 'Library/PreferenceLoader/Preferences/DuoBar.plist' contents.txt
+          cp "$deb" DuoBar_0.2.4-beta2_RootHide.deb
+          shasum -a 256 DuoBar_0.2.4-beta2_RootHide.deb > SHA256SUMS-RootHide.txt
+
+      - name: Publish GitHub prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.2.4-beta.2
+          name: DuoBar v0.2.4 Beta 2 (RootHide)
+          prerelease: true
+          make_latest: false
+          body: |
+            RootHide-only test build for the Personal Hotspot status-bar fix.
+
+            This beta attempts to detect the chain-link glyph when iOS provides no useful asset name and place it inside DuoBar in the regular status bar and Control Center. Live behavior still needs confirmation on an iPhone.
+
+            Install the attached `DuoBar_0.2.4-beta2_RootHide.deb` with a RootHide-compatible package manager and respring. Please test in Settings while connected to a Personal Hotspot and in Control Center.
+
+            Rootless packaging and the stable/Sileo release are deferred until testing is complete.
+          files: |
+            DuoBar_0.2.4-beta2_RootHide.deb
+            SHA256SUMS-RootHide.txt
