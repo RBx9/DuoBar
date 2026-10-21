@@ -1,6 +1,7 @@
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
 #import <CoreFoundation/CoreFoundation.h>
+#import <dispatch/dispatch.h>
 #import <objc/runtime.h>
 #import <objc/message.h>
 #import <math.h>
@@ -31,7 +32,7 @@
 @end
 
 static char DuoNativeKey, DuoContainerKey, DuoIconControllerKey;
-static char DuoSavedPercentageKey, DuoShiftedTransformKey;
+static char DuoSavedPercentageKey, DuoChainImageResultKey;
 static __weak _UIBatteryView *DuoLastBattery;
 static double DuoLastBatteryLevel = -1;
 static BOOL DuoLastBatteryCharging = NO;
@@ -101,15 +102,6 @@ static void DuoSyncPercentage(_UIStatusBarStringView *view) {
     } else if (!saved && DuoEnabled && DuoControlCenterVisible(view) && DuoIsBatteryPercentage(view.text)) {
         [view setText:view.text];
     }
-}
-
-// Move only an overlapping Control Center status indicator (e.g. orientation lock).
-// Store the original transform so the stock layout returns whenever DuoBar is off.
-static void DuoRestoreShiftedIndicator(UIView *view) {
-    NSValue *saved = objc_getAssociatedObject(view, &DuoShiftedTransformKey);
-    if (!saved) return;
-    view.transform = saved.CGAffineTransformValue;
-    objc_setAssociatedObject(view, &DuoShiftedTransformKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 // Save only drawing state. Keep native views, layout, and accessibility in place.
@@ -217,17 +209,39 @@ static UIImage *DuoHotspotImageForView(UIView *view) {
     return nil;
 }
 
+static CGImageRef DuoCreateRasterImage(UIImage *image) {
+    CGSize size = image.size;
+    if ((!isfinite(size.width) || !isfinite(size.height) || size.width <= 0 || size.height <= 0) && image.CGImage) {
+        size = CGSizeMake(CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage));
+    }
+    if (!isfinite(size.width) || !isfinite(size.height) || size.width <= 0 || size.height <= 0) return NULL;
+    CGFloat scale = MIN(48.0 / size.width, 32.0 / size.height);
+    CGSize fitted = CGSizeMake(size.width * scale, size.height * scale);
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(48, 32), NO, 1);
+    [image drawInRect:CGRectMake((48 - fitted.width) / 2, (32 - fitted.height) / 2,
+                                 fitted.width, fitted.height)];
+    UIImage *rendered = UIGraphicsGetImageFromCurrentImageContext();
+    CGImageRef result = rendered.CGImage ? CGImageRetain(rendered.CGImage) : NULL;
+    UIGraphicsEndImageContext();
+    return result;
+}
+
 // iOS sometimes supplies the Personal Hotspot chain as an unnamed template
-// image. Its small, wide two-link silhouette gives us a fallback when UIKit
-// exposes no accessibility label or asset name.
+// image or vector symbol. Its small, wide two-link silhouette gives us a
+// fallback when UIKit exposes no accessibility label or asset name.
 static BOOL DuoImageLooksLikeChainLink(UIImage *image) {
-    CGImageRef source = image.CGImage;
+    if (!image) return NO;
+    NSNumber *cached = objc_getAssociatedObject(image, &DuoChainImageResultKey);
+    if (cached) return cached.boolValue;
+    CGImageRef source = DuoCreateRasterImage(image);
     if (!source) return NO;
     size_t sourceWidth = CGImageGetWidth(source);
     size_t sourceHeight = CGImageGetHeight(source);
-    if (sourceWidth < 8 || sourceHeight < 6 || sourceWidth > 256 || sourceHeight > 192) return NO;
-    CGFloat aspect = (CGFloat)sourceWidth / (CGFloat)sourceHeight;
-    if (aspect < 1.25 || aspect > 2.8) return NO;
+    if (sourceWidth < 8 || sourceHeight < 6 || sourceWidth > 512 || sourceHeight > 512) {
+        CGImageRelease(source);
+        objc_setAssociatedObject(image, &DuoChainImageResultKey, @NO, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return NO;
+    }
 
     enum { Width = 48, Height = 32, PixelCount = Width * Height };
     uint8_t pixels[PixelCount * 4] = {0};
@@ -236,11 +250,16 @@ static BOOL DuoImageLooksLikeChainLink(UIImage *image) {
     CGContextRef bitmap = CGBitmapContextCreate(pixels, Width, Height, 8, Width * 4,
         colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
     CGColorSpaceRelease(colorSpace);
-    if (!bitmap) return NO;
+    if (!bitmap) {
+        CGImageRelease(source);
+        objc_setAssociatedObject(image, &DuoChainImageResultKey, @NO, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return NO;
+    }
     CGContextClearRect(bitmap, CGRectMake(0, 0, Width, Height));
     CGContextSetBlendMode(bitmap, kCGBlendModeCopy);
     CGContextDrawImage(bitmap, CGRectMake(0, 0, Width, Height), source);
     CGContextRelease(bitmap);
+    CGImageRelease(source);
 
     uint8_t foreground[PixelCount] = {0};
     int minX = Width, minY = Height, maxX = -1, maxY = -1, ink = 0;
@@ -254,11 +273,17 @@ static BOOL DuoImageLooksLikeChainLink(UIImage *image) {
             minY = MIN(minY, y); maxY = MAX(maxY, y);
         }
     }
-    if (maxX <= minX || maxY <= minY) return NO;
+    if (maxX <= minX || maxY <= minY) {
+        objc_setAssociatedObject(image, &DuoChainImageResultKey, @NO, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return NO;
+    }
     int boxWidth = maxX - minX + 1, boxHeight = maxY - minY + 1;
     CGFloat fill = (CGFloat)ink / (CGFloat)(boxWidth * boxHeight);
     if ((CGFloat)boxWidth / (CGFloat)boxHeight < 1.25 ||
-        (CGFloat)boxWidth / (CGFloat)boxHeight > 2.8 || fill < 0.08 || fill > 0.62) return NO;
+        (CGFloat)boxWidth / (CGFloat)boxHeight > 2.8 || fill < 0.08 || fill > 0.62) {
+        objc_setAssociatedObject(image, &DuoChainImageResultKey, @NO, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return NO;
+    }
 
     // Flood-fill transparent pixels from the crop boundary. Enclosed regions
     // are the two holes in a chain-link mark.
@@ -312,7 +337,9 @@ static BOOL DuoImageLooksLikeChainLink(UIImage *image) {
             }
         }
     }
-    return holes == 2;
+    BOOL result = holes == 2;
+    objc_setAssociatedObject(image, &DuoChainImageResultKey, @(result), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    return result;
 }
 
 // Restrict hotspot recognition to status-bar glyphs, never generic app images
@@ -321,6 +348,11 @@ static BOOL DuoImageLooksLikeChainLink(UIImage *image) {
 // public image description and optional private name accessors when available.
 static BOOL DuoIsHotspotIndicator(UIView *view) {
     if (!view) return NO;
+    // DuoBar draws the same chain image inside its own glyph. Never rediscover
+    // and cover that child as if it were a native iOS status-bar indicator.
+    for (UIView *ancestor = view; ancestor; ancestor = ancestor.superview) {
+        if ([ancestor isKindOfClass:DuoGlyphView.class]) return NO;
+    }
     NSString *className = NSStringFromClass(view.class).lowercaseString;
     BOOL statusGlyph = [className containsString:@"statusbar"] ||
                        [className containsString:@"hotspot"] ||
@@ -372,9 +404,10 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 @interface DuoStatusController : NSObject
 @property(nonatomic, weak) UIView *container;
 @property(nonatomic, strong) NSHashTable<UIView *> *icons;
-@property(nonatomic, strong) NSHashTable<UIView *> *shiftedIndicators;
 @property(nonatomic, strong) DuoGlyphView *glyph;
 @property(nonatomic) BOOL updating;
+@property(nonatomic) BOOL updateScheduled;
+- (void)scheduleUpdate;
 - (void)update;
 @end
 
@@ -382,19 +415,24 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 - (instancetype)init {
     if ((self = [super init])) {
         self.icons = [NSHashTable weakObjectsHashTable];
-        self.shiftedIndicators = [NSHashTable weakObjectsHashTable];
         self.glyph = [[DuoGlyphView alloc] initWithFrame:CGRectZero];
         self.glyph.hidden = YES;
     }
     return self;
+}
+- (void)scheduleUpdate {
+    if (self.updateScheduled || self.updating) return;
+    self.updateScheduled = YES;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.updateScheduled = NO;
+        [self update];
+    });
 }
 - (void)update {
     UIView *container = self.container;
     if (!container || self.updating) return;
     self.updating = YES;
     DuoScanHotspotIndicators(container);
-    for (UIView *indicator in self.shiftedIndicators.allObjects) DuoRestoreShiftedIndicator(indicator);
-    [self.shiftedIndicators removeAllObjects];
     if (!DuoEnabled) {
         self.glyph.hidden = YES;
         for (UIView *icon in self.icons) DuoRestoreNative(icon);
@@ -497,59 +535,9 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
         MIN(y, CGRectGetMaxY(container.bounds) - height - 1 + extra));
 
     if (DuoControlCenterVisible(container)) {
-        // In Control Center the orientation-lock badge can sit directly behind
-        // the new glyph. Give it the unused space formerly occupied by the stock
-        // percentage, without hard-coding screen coordinates or altering its state.
-        CGRect glyphRect = CGRectMake(x, y, width, height);
-        UIView *statusRoot = container;
-        for (UIView *parent = container.superview; parent; parent = parent.superview) {
-            if ([parent isKindOfClass:DuoStatusBarClass] ||
-                [NSStringFromClass(parent.class) isEqualToString:@"CCUIStatusBar"]) {
-                statusRoot = parent;
-                if ([NSStringFromClass(parent.class) isEqualToString:@"CCUIStatusBar"]) break;
-            }
-        }
-        UIView *nearest = nil;
-        CGFloat bestScore = CGFLOAT_MAX;
-        NSMutableArray<UIView *> *pending = [NSMutableArray arrayWithObject:statusRoot];
-        while (pending.count) {
-            UIView *candidate = pending.lastObject;
-            [pending removeLastObject];
-            [pending addObjectsFromArray:candidate.subviews];
-            if (candidate == container || candidate == self.glyph || !candidate.window || candidate.hidden) continue;
-            BOOL nativeGlyph = NO;
-            for (UIView *icon in self.icons) {
-                if (candidate == icon || [candidate isDescendantOfView:icon]) { nativeGlyph = YES; break; }
-            }
-            if (nativeGlyph) continue;
-            NSString *name = NSStringFromClass(candidate.class);
-            NSString *label = candidate.accessibilityLabel.lowercaseString ?: @"";
-            BOOL orientation = [label containsString:@"orientation"] ||
-                [label containsString:@"rotation"] || [label containsString:@"portrait"];
-            BOOL image = [name containsString:@"StatusBar"] &&
-                ([name containsString:@"ImageView"] || [name containsString:@"IndicatorView"]);
-            if (!orientation && !image) continue;
-            CGRect rect = [candidate convertRect:candidate.bounds toView:container];
-            if (CGRectIsEmpty(rect) || CGRectGetWidth(rect) > 40 || CGRectGetHeight(rect) > 40) continue;
-            if (CGRectGetMaxX(rect) < x - 5 || CGRectGetMinX(rect) > CGRectGetMaxX(glyphRect) ||
-                CGRectGetMaxY(rect) < y - 5 || CGRectGetMinY(rect) > CGRectGetMaxY(glyphRect) + 5) continue;
-            CGFloat score = (orientation ? 0 : 100) + fabs(CGRectGetMidX(rect) - CGRectGetMidX(glyphRect));
-            if (score < bestScore) { bestScore = score; nearest = candidate; }
-        }
-        if (nearest) {
-            CGRect rect = [nearest convertRect:nearest.bounds toView:container];
-            CGFloat shift = MAX(-24, MIN(0, CGRectGetMinX(glyphRect) - 5 - CGRectGetMaxX(rect)));
-            if (shift < -1) {
-                objc_setAssociatedObject(nearest, &DuoShiftedTransformKey,
-                    [NSValue valueWithCGAffineTransform:nearest.transform], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                nearest.transform = CGAffineTransformTranslate(nearest.transform, shift, 0);
-                [self.shiftedIndicators addObject:nearest];
-            }
-        } else {
-            // Some builds do not expose a separate orientation indicator view;
-            // reserve a small gap by moving DuoBar to the trailing edge instead.
-            x = MIN(CGRectGetMaxX(container.bounds) - width, x + 12);
-        }
+        // Use one stable Control Center offset. Moving UIKit's neighboring
+        // indicators while their presentation is animating made the glyph jump.
+        x = MIN(CGRectGetMaxX(container.bounds) - width, x + 12);
     }
 
     [CATransaction begin];
@@ -577,7 +565,7 @@ static void DuoRegisterIcon(UIView *icon) {
     if (previous && previous.container != container) {
         [previous.icons removeObject:icon];
         DuoRestoreNative(icon);
-        [previous update];
+        [previous scheduleUpdate];
         objc_setAssociatedObject(icon, &DuoIconControllerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
     if (!container) {
@@ -593,7 +581,7 @@ static void DuoRegisterIcon(UIView *icon) {
     }
     objc_setAssociatedObject(icon, &DuoIconControllerKey, controller, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     [controller.icons addObject:icon];
-    [controller update];
+    [controller scheduleUpdate];
 }
 
 // Also discover a hotspot icon during status-bar relayout: some iOS 16
@@ -605,17 +593,14 @@ static void DuoScanHotspotIndicators(UIView *container) {
     while (pending.count && checked++ < 150) {
         UIView *candidate = pending.lastObject;
         [pending removeLastObject];
-        if (DuoIsHotspotIndicator(candidate)) {
-            DuoRegisterIcon(candidate);
-            continue;
-        }
+        if (DuoIsHotspotIndicator(candidate)) DuoRegisterIcon(candidate);
         [pending addObjectsFromArray:candidate.subviews];
     }
 }
 
 static void DuoUpdateContainer(UIView *container) {
     DuoStatusController *controller = objc_getAssociatedObject(container, &DuoContainerKey);
-    [controller update];
+    [controller scheduleUpdate];
 }
 
 static void DuoReloadPreferences(void) {
@@ -751,6 +736,10 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
 %group DuoHotspotImageHooks
 %hook _UIStatusBarImageView
 - (void)setImage:(UIImage *)image {
+    %orig;
+    if (DuoIsHotspotIndicator(self)) DuoRegisterIcon(self);
+}
+- (void)setAccessibilityLabel:(NSString *)label {
     %orig;
     if (DuoIsHotspotIndicator(self)) DuoRegisterIcon(self);
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.4 beta 7 — Restore hotspot glyph and stabilize transitions
+
+- Detect Personal Hotspot chain symbols even when iOS exposes them as vector/template images.
+- Keep DuoBar's own in-ring link image out of native-indicator detection so it remains visible.
+- Coalesce status-bar relayout updates and use a stable Control Center position during presentation changes.
+- Keep the existing 70%–140% size slider, app status bars, and RootHide-only beta packaging.
+
 ## 0.2.4 beta 6 — Keep DuoBar visible in apps
 
 - Use the device battery reading when an app's status-bar container has no native battery view.
