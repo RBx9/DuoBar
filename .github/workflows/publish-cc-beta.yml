@@ -1,0 +1,63 @@
+name: Publish DuoBar Control Center beta
+
+on:
+  push:
+    branches:
+      - fix/control-center-battery-layout
+    paths:
+      - '.github/workflows/publish-cc-beta.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  beta:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Theos build prerequisites
+        run: brew install make ldid dpkg gnu-tar xz rsync
+      - name: Configure tools
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Fetch RootHide Theos and SDK
+        run: |
+          git clone --recursive --depth 1 https://github.com/roothide/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+      - name: Compile beta RootHide package
+        run: |
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide TARGET=iphone:clang:16.5:16.0
+          ls -lh packages/
+      - name: Check Debian package metadata and publish test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          files=(packages/*.deb)
+          if [[ ${#files[@]} -ne 1 ]]; then
+            echo "Expected one RootHide .deb, found ${#files[@]}" >&2
+            exit 1
+          fi
+          file="${files[0]}"
+          dpkg-deb --info "$file"
+          architecture="$(dpkg-deb -f "$file" Architecture)"
+          version="$(dpkg-deb -f "$file" Version)"
+          package="$(dpkg-deb -f "$file" Package)"
+          test "$architecture" = iphoneos-arm64e
+          test "$version" = '0.2.1~beta1'
+          test "$package" = local.duobar
+          cp "$file" DuoBar_0.2.1-beta1_RootHide.deb
+          shasum -a 256 DuoBar_0.2.1-beta1_RootHide.deb > SHA256SUMS-beta1.txt
+          gh release create v0.2.1-beta.1 \
+            DuoBar_0.2.1-beta1_RootHide.deb SHA256SUMS-beta1.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "DuoBar v0.2.1 beta 1 — Control Center fix" \
+            --notes-file docs/RELEASE-v0.2.1-beta1.md \
+            --prerelease
