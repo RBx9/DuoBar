@@ -1,0 +1,77 @@
+name: Publish DuoBar v0.2.2
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-v0.2.2.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: macos-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: brew install make ldid dpkg gnu-tar xz rsync
+      - name: Configure Theos
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Download RootHide Theos and SDK
+        run: |
+          git clone --recursive --depth 1 https://github.com/roothide/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+      - name: Build verified stable RootHide installer
+        shell: bash
+        run: |
+          set -euo pipefail
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide TARGET=iphone:clang:16.5:16.0
+          files=(packages/*.deb)
+          test "${#files[@]}" -eq 1
+          deb="${files[0]}"
+          test "$(dpkg-deb -f "$deb" Package)" = "local.duobar"
+          test "$(dpkg-deb -f "$deb" Version)" = "0.2.2"
+          test "$(dpkg-deb -f "$deb" Architecture)" = "iphoneos-arm64e"
+          dpkg-deb --contents "$deb" | tee contents.txt
+          grep -Fq 'Library/PreferenceLoader/Preferences/DuoBar.png' contents.txt
+          grep -Fq 'Library/PreferenceLoader/Preferences/DuoBar@2x.png' contents.txt
+          grep -Fq 'Library/PreferenceLoader/Preferences/DuoBar@3x.png' contents.txt
+          grep -Fq 'Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarIcon.png' contents.txt
+          grep -Fq 'Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBar.png' contents.txt
+          grep -Fq 'Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBar@2x.png' contents.txt
+          grep -Fq 'Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBar@3x.png' contents.txt
+          dpkg-deb --extract "$deb" extracted
+          python3 - <<'PY'
+          from pathlib import Path
+          import plistlib
+          root = Path('extracted/Library/PreferenceBundles/DuoBarPrefs.bundle')
+          assert (root/'DuoBar.png').is_file()
+          assert (root/'DuoBar@2x.png').is_file()
+          assert (root/'DuoBar@3x.png').is_file()
+          spec=Path('extracted/Library/PreferenceLoader/Preferences/DuoBar.plist')
+          assert plistlib.loads(spec.read_bytes())['entry']['icon'] == 'DuoBar.png'
+          print('PreferenceLoader icon and bundle assets verified')
+          PY
+          cp "$deb" DuoBar_0.2.2_RootHide.deb
+          shasum -a 256 DuoBar_0.2.2_RootHide.deb > SHA256SUMS.txt
+      - name: Publish stable release with installer and checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view v0.2.2 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release v0.2.2 already exists; refusing to overwrite it" >&2
+            exit 1
+          fi
+          gh release create v0.2.2 DuoBar_0.2.2_RootHide.deb SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "DuoBar v0.2.2 — Settings Icon Fix" \
+            --notes-file docs/RELEASE-v0.2.2.md --latest

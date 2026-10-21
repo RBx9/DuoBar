@@ -22,6 +22,12 @@ static NSString *const DuoGitHubURL = @"https://github.com/RBx9/DuoBar";
     UIImage *icon = [UIImage imageNamed:@"DuoBarIcon"
                               inBundle:bundle
          compatibleWithTraitCollection:nil];
+    // Some PreferenceLoader builds expose the image as a file but not via
+    // UIKit's named-image cache; load it directly as a fallback.
+    if (!icon) {
+        NSString *file = [bundle pathForResource:@"DuoBarIcon" ofType:@"png"];
+        if (file) icon = [UIImage imageWithContentsOfFile:file];
+    }
     if (icon) {
         UIView *titleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 132, 32)];
         UIImageView *imageView = [[UIImageView alloc] initWithImage:icon];

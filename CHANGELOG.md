@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2 — Settings icon compatibility
+
+- Fixed the missing DuoBar icon on the iOS Settings main list by bundling all icon sizes inside DuoBarPrefs.bundle, where PreferenceLoader resolves entry images.
+- Kept icon files in the PreferenceLoader directory for compatibility with other implementations.
+- Added an image-file fallback for the in-page DuoBar icon.
+- Sileo package metadata and Settings version now use 0.2.2.
+
 ## 0.2.1 — Control Center and Settings update
 
 - Fixed the duplicate stock battery percentage in Control Center.
