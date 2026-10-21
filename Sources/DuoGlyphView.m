@@ -66,17 +66,16 @@ static void DuoArc(CGPoint center, CGFloat radius, CGFloat start, CGFloat end, U
     }];
 
     if (self.hotspotActive) {
-        // When connected to another iPhone's hotspot, iOS substitutes the
-        // chain-link symbol for Wi-Fi. Keep it INSIDE the DuoBar ring.
+        // Use a compact, level chain mark so it stays centered inside the
+        // ring at the same visual scale as the Wi-Fi glyph.
         CGContextSaveGState(context);
-        CGContextTranslateCTM(context, 16.0, 19.6);
-        CGContextRotateCTM(context, -0.36);
+        CGContextTranslateCTM(context, 16.0, 18.0);
         UIBezierPath *leftLink = [UIBezierPath bezierPathWithRoundedRect:
-            CGRectMake(-11.1, -3.6, 13.2, 7.2) cornerRadius:3.6];
+            CGRectMake(-7.2, -3.0, 10.2, 6.0) cornerRadius:3.0];
         UIBezierPath *rightLink = [UIBezierPath bezierPathWithRoundedRect:
-            CGRectMake(-2.1, -3.6, 13.2, 7.2) cornerRadius:3.6];
-        leftLink.lineWidth = 1.9;
-        rightLink.lineWidth = 1.9;
+            CGRectMake(-3.0, -3.0, 10.2, 6.0) cornerRadius:3.0];
+        leftLink.lineWidth = 1.55;
+        rightLink.lineWidth = 1.55;
         [foreground setStroke];
         [leftLink stroke];
         [rightLink stroke];

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.4 beta 3 — Compact Personal Hotspot glyph
+
+- Shrinks the chain-link mark and removes its rotation so it sits level inside the DuoBar ring.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
 ## 0.2.4 beta 2 — Personal Hotspot indicator compatibility
 
 - Detects unlabeled Personal Hotspot chain glyphs by their rendered shape.
