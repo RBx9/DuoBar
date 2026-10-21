@@ -185,8 +185,24 @@ static BOOL DuoIsVisible(UIView *view, UIView *container) {
     return NO;
 }
 
-// Restrict hotspot recognition to dedicated status-bar glyphs, never generic
-// UI images or the names of Wi-Fi networks on the Settings screen.
+static void DuoAppendImageName(NSMutableArray<NSString *> *values, id object,
+        NSString *selectorName) {
+    SEL selector = NSSelectorFromString(selectorName);
+    if (!object || ![object respondsToSelector:selector]) return;
+    @try {
+        id result = ((id (*)(id, SEL))objc_msgSend)(object, selector);
+        if ([result isKindOfClass:NSString.class] && [result length] > 0) {
+            [values addObject:[result lowercaseString]];
+        }
+    } @catch (__unused NSException *exception) {
+        // UIKit's private image-name accessors vary by iOS build.
+    }
+}
+
+// Restrict hotspot recognition to status-bar glyphs, never generic app images
+// or the names of Wi-Fi networks on the Settings screen. iOS 16 status images
+// expose their symbol name differently across point releases, so examine the
+// public image description and optional private name accessors when available.
 static BOOL DuoIsHotspotIndicator(UIView *view) {
     if (!view) return NO;
     NSString *className = NSStringFromClass(view.class).lowercaseString;
@@ -194,14 +210,30 @@ static BOOL DuoIsHotspotIndicator(UIView *view) {
                        [className containsString:@"hotspot"] ||
                        [className containsString:@"tether"];
     if (!statusGlyph) return NO;
-    NSArray<NSString *> *tokens = @[
+    NSMutableArray<NSString *> *tokens = [NSMutableArray arrayWithObjects:
         className,
         view.accessibilityLabel.lowercaseString ?: @"",
         view.accessibilityIdentifier.lowercaseString ?: @"",
-    ];
+        nil];
+    if ([view isKindOfClass:UIImageView.class]) {
+        UIImage *image = ((UIImageView *)view).image;
+        if (image) {
+            [tokens addObject:image.description.lowercaseString ?: @""];
+            DuoAppendImageName(tokens, image, @"imageName");
+            DuoAppendImageName(tokens, image, @"_imageName");
+            DuoAppendImageName(tokens, image, @"symbolImageName");
+            DuoAppendImageName(tokens, image, @"_symbolName");
+            id asset = [image respondsToSelector:@selector(imageAsset)] ? image.imageAsset : nil;
+            if (asset) {
+                [tokens addObject:[asset description].lowercaseString ?: @""];
+                DuoAppendImageName(tokens, asset, @"name");
+            }
+        }
+    }
     for (NSString *value in tokens) {
         if ([value containsString:@"personal hotspot"] ||
             [value containsString:@"personalhotspot"] ||
+            [value containsString:@"personal-hotspot"] ||
             [value containsString:@"tethering"] ||
             [value containsString:@"hotspot"]) return YES;
     }
@@ -585,6 +617,10 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
 
 %group DuoHotspotImageHooks
 %hook _UIStatusBarImageView
+- (void)setImage:(UIImage *)image {
+    %orig;
+    if (DuoIsHotspotIndicator(self)) DuoRegisterIcon(self);
+}
 - (void)layoutSubviews {
     %orig;
     if (DuoIsHotspotIndicator(self)) DuoRegisterIcon(self);

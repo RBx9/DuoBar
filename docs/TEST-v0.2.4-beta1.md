@@ -1,6 +1,6 @@
 # DuoBar v0.2.4 beta 1 — Hotspot indicator compatibility
 
-**TEST RELEASE — Not published in Sileo.**
+**TEST BUILD — Not published in Sileo.**
 
 ## Fixed in this beta
 - When iOS 16 replaces Wi-Fi with the Personal Hotspot chain-link indicator, DuoBar attempts to detect that status indicator and renders a matching chain-link **inside its circular battery glyph**.
@@ -12,7 +12,7 @@
 - **RootHide:** `DuoBar_0.2.4-beta1_RootHide.deb` — package `local.duobar`, architecture `iphoneos-arm64e`
 - **Rootless:** `DuoBar_0.2.4-beta1_Rootless.deb` — package `local.duobar.rootless`, architecture `iphoneos-arm64`
 
-Install the appropriate file with your compatible package manager, then respring.
+Download the matching `.deb` from the latest successful **Build DuoBar Hotspot Beta** run under GitHub Actions. Install it with your compatible package manager, then respring. The RootHide and Rootless builds are separate packages; install only the one matching your jailbreak.
 
 ## Device testing checklist
 1. Join a regular Wi-Fi network and verify the normal in-ring Wi-Fi symbol.
