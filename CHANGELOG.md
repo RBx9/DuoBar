@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4 beta 9 — More rotation-lock spacing
+
+- Move the rotation-lock indicator up to five additional points left by expanding the desired gap with DuoBar from 5 to 10 points.
+- Retain the safe screen-edge clamp, hotspot symbol and no-flash transition fixes from beta 8.
+- RootHide-only device test; Sileo remains on stable v0.2.3.
+
 ## 0.2.4 beta 8 — Rotation lock and status-bar transitions
 
 - Restore a safe Control Center rotation-lock adjustment, moving an overlapping lock indicator just LEFT of the DuoBar ring.
