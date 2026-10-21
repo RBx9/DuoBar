@@ -1,4 +1,4 @@
-name: Build DuoBar Hotspot Beta 3
+name: Build DuoBar Hotspot Beta 4
 
 on:
   push:
@@ -51,18 +51,18 @@ jobs:
           test "${#files[@]}" -eq 1
           deb="${files[0]}"
           test "$(dpkg-deb -f "$deb" Package)" = "$package_id"
-          test "$(dpkg-deb -f "$deb" Version)" = "0.2.4~beta3"
+          test "$(dpkg-deb -f "$deb" Version)" = "0.2.4~beta4"
           test "$(dpkg-deb -f "$deb" Architecture)" = "$arch"
           dpkg-deb --contents "$deb" | tee contents.txt
           grep -Fq "${prefix}Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib" contents.txt
           grep -Fq "${prefix}Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarIcon.png" contents.txt
           grep -Fq "${prefix}Library/PreferenceLoader/Preferences/DuoBar.plist" contents.txt
-          cp "$deb" "DuoBar_0.2.4-beta3_${suffix}.deb"
-          shasum -a 256 "DuoBar_0.2.4-beta3_${suffix}.deb" > "SHA256SUMS-${suffix}.txt"
+          cp "$deb" "DuoBar_0.2.4-beta4_${suffix}.deb"
+          shasum -a 256 "DuoBar_0.2.4-beta4_${suffix}.deb" > "SHA256SUMS-${suffix}.txt"
       - uses: actions/upload-artifact@v4
         with:
           name: DuoBar-hotspot-beta-${{ matrix.scheme }}
           path: |
-            DuoBar_0.2.4-beta3_*.deb
+            DuoBar_0.2.4-beta4_*.deb
             SHA256SUMS-*.txt
           if-no-files-found: error

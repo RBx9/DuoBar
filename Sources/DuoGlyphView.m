@@ -3,6 +3,10 @@
 
 static CGFloat DuoRadians(CGFloat degrees) { return degrees * (CGFloat)M_PI / 180.0; }
 
+@interface DuoGlyphView ()
+@property(nonatomic, strong) UIImageView *hotspotImageView;
+@end
+
 static void DuoArc(CGPoint center, CGFloat radius, CGFloat start, CGFloat end, UIColor *color) {
     if (end <= start) return;
     UIBezierPath *arc = [UIBezierPath bezierPathWithArcCenter:center radius:radius
@@ -24,8 +28,47 @@ static void DuoArc(CGPoint center, CGFloat radius, CGFloat start, CGFloat end, U
         self.accessibilityElementsHidden = YES;
         self.contentMode = UIViewContentModeRedraw;
         self.foreground = UIColor.labelColor;
+        self.hotspotImageView = [[UIImageView alloc] initWithFrame:CGRectZero];
+        self.hotspotImageView.contentMode = UIViewContentModeScaleAspectFit;
+        self.hotspotImageView.userInteractionEnabled = NO;
+        self.hotspotImageView.isAccessibilityElement = NO;
+        self.hotspotImageView.accessibilityElementsHidden = YES;
+        self.hotspotImageView.image = [[UIImage systemImageNamed:@"link"]
+            imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        self.hotspotImageView.tintColor = self.foreground;
+        self.hotspotImageView.hidden = YES;
+        [self addSubview:self.hotspotImageView];
     }
     return self;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    CGFloat scale = MIN(self.bounds.size.width / 32.0, self.bounds.size.height / 34.0);
+    CGFloat left = (self.bounds.size.width - 32.0 * scale) / 2.0;
+    CGFloat top = (self.bounds.size.height - 34.0 * scale) / 2.0;
+    self.hotspotImageView.frame = CGRectMake(left + 8.5 * scale, top + 12.5 * scale,
+                                              15.0 * scale, 10.0 * scale);
+}
+
+- (void)setHotspotActive:(BOOL)hotspotActive {
+    _hotspotActive = hotspotActive;
+    self.hotspotImageView.hidden = !hotspotActive;
+    [self setNeedsDisplay];
+}
+
+- (void)setHotspotImage:(UIImage *)hotspotImage {
+    _hotspotImage = hotspotImage;
+    UIImage *image = hotspotImage ?: [UIImage systemImageNamed:@"link"];
+    self.hotspotImageView.image = [image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    self.hotspotImageView.tintColor = self.foreground ?: UIColor.labelColor;
+    [self.hotspotImageView setNeedsLayout];
+}
+
+- (void)setForeground:(UIColor *)foreground {
+    _foreground = foreground;
+    self.hotspotImageView.tintColor = foreground ?: UIColor.labelColor;
+    [self setNeedsDisplay];
 }
 
 - (void)drawRect:(CGRect)rect {
@@ -66,20 +109,7 @@ static void DuoArc(CGPoint center, CGFloat radius, CGFloat start, CGFloat end, U
     }];
 
     if (self.hotspotActive) {
-        // Use a compact, level chain mark so it stays centered inside the
-        // ring at the same visual scale as the Wi-Fi glyph.
-        CGContextSaveGState(context);
-        CGContextTranslateCTM(context, 16.0, 18.0);
-        UIBezierPath *leftLink = [UIBezierPath bezierPathWithRoundedRect:
-            CGRectMake(-7.2, -3.0, 10.2, 6.0) cornerRadius:3.0];
-        UIBezierPath *rightLink = [UIBezierPath bezierPathWithRoundedRect:
-            CGRectMake(-3.0, -3.0, 10.2, 6.0) cornerRadius:3.0];
-        leftLink.lineWidth = 1.55;
-        rightLink.lineWidth = 1.55;
-        [foreground setStroke];
-        [leftLink stroke];
-        [rightLink stroke];
-        CGContextRestoreGState(context);
+        // The matching iOS status-bar image is drawn by hotspotImageView.
     } else if (self.wifiVisible) {
         CGContextSaveGState(context);
         CGContextTranslateCTM(context, 9, 13);

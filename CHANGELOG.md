@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4 beta 4 — Native Personal Hotspot symbol
+
+- Reuses the chain-link image supplied by iOS and scales it inside DuoBar.
+- Falls back to Apple's standard `link` symbol when the status-bar image is unavailable.
+- RootHide test build only; Rootless remains deferred until the fix is confirmed.
+
 ## 0.2.4 beta 3 — Compact Personal Hotspot glyph
 
 - Shrinks the chain-link mark and removes its rotation so it sits level inside the DuoBar ring.

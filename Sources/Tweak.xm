@@ -392,6 +392,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     }
     _UIBatteryView *battery = nil;
     BOOL wifiVisible = NO, hotspotVisible = NO;
+    UIImage *hotspotImage = nil;
     NSInteger wifiBars = 0, cellularBars = 0;
     CGRect area = CGRectNull;
 
@@ -414,6 +415,9 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
             cellularBars = MAX(cellularBars, DuoBars((_UIStatusBarSignalView *)icon, 4));
         } else if (DuoIsHotspotIndicator(icon)) {
             hotspotVisible = YES;
+            if ([icon isKindOfClass:UIImageView.class]) {
+                hotspotImage = ((UIImageView *)icon).image ?: hotspotImage;
+            }
         }
     }
 
@@ -447,6 +451,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     self.glyph.charging = battery ? (battery.chargingState != 0) : DuoLastBatteryCharging;
     self.glyph.lowPower = battery ? battery.saverModeActive : DuoLastBatteryLowPower;
     self.glyph.hotspotActive = hotspotVisible;
+    self.glyph.hotspotImage = hotspotImage;
     self.glyph.wifiVisible = wifiVisible && !hotspotVisible;
     self.glyph.wifiBars = wifiBars;
     self.glyph.cellularBars = cellularBars;
