@@ -1,7 +1,7 @@
-# DuoBar v0.2.7 (Rootless) — iOS 16
+# DuoBar v2.7.1 (Rootless) — iOS 16
 
 This is the **standard Rootless/Dopamine** build of DuoBar, using the same
-v0.2.7 drawing engine and settings as the RootHide edition, but compiled
+v2.7.1 drawing engine and settings as the RootHide edition, but compiled
 for the `iphoneos-arm64` rootless environment.
 
 ## Package separation
@@ -26,7 +26,7 @@ Test Personal Hotspot connecting/disconnecting, transitions, rotation lock,
 and size values of 70%, 100% and 140%. Ensure the off switch restores native
 icons. Report bugs with screenshots if possible.
 
-The RootHide v0.2.7 build was tested on-device, but the standard Rootless
+The underlying RootHide features were tested on-device; v2.7.1 retains the same functionality, but the standard Rootless
 edition still has no independent on-device confirmation. Automated compilation
 and package verification cannot guarantee iOS private status-bar compatibility.
 

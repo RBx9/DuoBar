@@ -19,11 +19,11 @@ The **RBx9 Repo** hosts two distinct iOS 16 packages: **DuoBar (RootHide)** for 
 
 ## Download .deb manually
 
-[**Download DuoBar v0.2.7 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v0.2.7/DuoBar_0.2.7_RootHide.deb)
+[**Download DuoBar v2.7.1 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v2.7.1/DuoBar_2.7.1_RootHide.deb)
 
-[**Unified v0.2.7 Release (RootHide and Rootless)**](https://github.com/RBx9/DuoBar/releases/tag/v0.2.7) · [Previous stable v0.2.6](https://github.com/RBx9/DuoBar/releases/tag/v0.2.6)
+[**Unified v2.7.1 Release (RootHide and Rootless)**](https://github.com/RBx9/DuoBar/releases/tag/v2.7.1) · [Previous stable v0.2.6](https://github.com/RBx9/DuoBar/releases/tag/v0.2.6)
 
-**Standard Rootless edition:** [DuoBar v0.2.7 Rootless .deb](https://github.com/RBx9/DuoBar/releases/download/v0.2.7/DuoBar_0.2.7_Rootless.deb) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. The package passed build verification but still needs an on-device Rootless test.
+**Standard Rootless edition:** [DuoBar v2.7.1 Rootless .deb](https://github.com/RBx9/DuoBar/releases/download/v2.7.1/DuoBar_2.7.1_Rootless.deb) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. The package passed build verification but still needs an on-device Rootless test.
 
 No compiling is needed. The RootHide package uses `iphoneos-arm64e`; standard Rootless uses `iphoneos-arm64`.
 
@@ -55,7 +55,7 @@ Existing DuoBar installations can be upgraded with the same package. See the [in
 
 The supplied download targets **iOS 16.x and Dopamine RootHide**, with tweak injection and PreferenceLoader. PreferenceLoader is declared as a package dependency. This download is not a standard Dopamine/rootless package.
 
-The v0.2.7 update uses the same indicator and Settings code for both editions. Both installers passed automated build checks; on-device confirmation for standard Rootless is still needed. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
+This v2.7.1 release changes the version numbering and retains the existing v0.2.7 indicator and Settings features for both editions. Both installers passed automated build checks; on-device confirmation for standard Rootless is still needed. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
 
 ## Build from source
 
