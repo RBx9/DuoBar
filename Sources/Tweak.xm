@@ -31,8 +31,9 @@
 @property(nonatomic, copy) NSString *text;
 @end
 
-static char DuoNativeKey, DuoContainerKey, DuoIconControllerKey;
-static char DuoSavedPercentageKey, DuoChainImageResultKey;
+static char DuoNativeKey, DuoContainerKey, DuoIconControllerKey, DuoNetworkControllerKey;
+static char DuoSavedPercentageKey;
+static char DuoChainImageResultKey;
 static __weak _UIBatteryView *DuoLastBattery;
 static double DuoLastBatteryLevel = -1;
 static BOOL DuoLastBatteryCharging = NO;
@@ -72,6 +73,22 @@ static BOOL DuoIsBatteryPercentage(NSString *text) {
     if (![trimmed hasSuffix:@"%"] || trimmed.length < 2 || trimmed.length > 4) return NO;
     NSString *digits = [trimmed substringToIndex:trimmed.length - 1];
     return [digits rangeOfCharacterFromSet:NSCharacterSet.decimalDigitCharacterSet.invertedSet].location == NSNotFound;
+}
+
+// Cellular technology labels use the same small center slot as Wi-Fi. Map
+// carrier-specific variants (for example 5G UC or LTE+) to Apple's compact
+// 5G/LTE mark so the label stays legible inside the ring.
+static NSString *DuoCarrierType(NSString *text) {
+    if (![text isKindOfClass:NSString.class]) return nil;
+    NSString *trimmed = [[text stringByTrimmingCharactersInSet:
+        NSCharacterSet.whitespaceAndNewlineCharacterSet] uppercaseString];
+    if ([trimmed hasPrefix:@"5G"]) return @"5G";
+    if ([trimmed hasPrefix:@"LTE"]) return @"LTE";
+    return nil;
+}
+
+static NSString *DuoEffectiveCarrierType(_UIStatusBarStringView *view) {
+    return DuoCarrierType(view.text);
 }
 
 // Only touch the Control Center presentation, never app/lock-screen status bars.
@@ -149,6 +166,10 @@ static void DuoSyncPercentage(_UIStatusBarStringView *view) {
 static void DuoRestoreNative(UIView *host) {
     DuoNativeState *state = objc_getAssociatedObject(host, &DuoNativeKey);
     [state restore];
+}
+
+static void DuoRestoreNetworkText(_UIStatusBarStringView *view) {
+    DuoRestoreNative(view);
 }
 
 static void DuoCoverNative(UIView *host) {
@@ -404,6 +425,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 @interface DuoStatusController : NSObject
 @property(nonatomic, weak) UIView *container;
 @property(nonatomic, strong) NSHashTable<UIView *> *icons;
+@property(nonatomic, strong) NSHashTable<_UIStatusBarStringView *> *networkViews;
 @property(nonatomic, strong) DuoGlyphView *glyph;
 @property(nonatomic) BOOL updating;
 @property(nonatomic) BOOL updateScheduled;
@@ -415,6 +437,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 - (instancetype)init {
     if ((self = [super init])) {
         self.icons = [NSHashTable weakObjectsHashTable];
+        self.networkViews = [NSHashTable weakObjectsHashTable];
         self.glyph = [[DuoGlyphView alloc] initWithFrame:CGRectZero];
         self.glyph.hidden = YES;
     }
@@ -436,6 +459,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     if (!DuoEnabled) {
         self.glyph.hidden = YES;
         for (UIView *icon in self.icons) DuoRestoreNative(icon);
+        for (_UIStatusBarStringView *view in self.networkViews) DuoRestoreNetworkText(view);
         self.updating = NO;
         return;
     }
@@ -443,6 +467,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     BOOL wifiVisible = NO, hotspotVisible = NO;
     UIImage *hotspotImage = nil;
     NSInteger wifiBars = 0, cellularBars = 0;
+    NSString *networkType = nil;
     CGRect area = CGRectNull;
 
     for (UIView *icon in self.icons) {
@@ -466,6 +491,15 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
             hotspotVisible = YES;
             hotspotImage = DuoHotspotImageForView(icon) ?: hotspotImage;
         }
+    }
+
+    for (_UIStatusBarStringView *view in self.networkViews) {
+        if (DuoStatusContainer(view) != container || !DuoIsVisible(view, container)) {
+            DuoRestoreNetworkText(view);
+            continue;
+        }
+        NSString *candidate = DuoEffectiveCarrierType(view);
+        if ([candidate isEqualToString:@"5G"] || !networkType) networkType = candidate;
     }
 
     if (battery) {
@@ -497,6 +531,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
         CGRectIsNull(area) || CGRectGetHeight(container.bounds) < 16) {
         self.glyph.hidden = YES;
         for (UIView *icon in self.icons) DuoRestoreNative(icon);
+        for (_UIStatusBarStringView *view in self.networkViews) DuoRestoreNetworkText(view);
         self.updating = NO;
         return;
     }
@@ -506,6 +541,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     self.glyph.lowPower = battery ? battery.saverModeActive : fallbackLowPower;
     self.glyph.hotspotActive = hotspotVisible;
     self.glyph.hotspotImage = hotspotImage;
+    self.glyph.networkType = hotspotVisible ? nil : networkType;
     self.glyph.wifiVisible = wifiVisible && !hotspotVisible;
     self.glyph.wifiBars = wifiBars;
     self.glyph.cellularBars = cellularBars;
@@ -548,6 +584,14 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     [self.glyph layoutIfNeeded];
     self.glyph.layer.zPosition = 100;
     self.glyph.hidden = NO;
+    for (_UIStatusBarStringView *view in self.networkViews) {
+        if (!hotspotVisible && networkType && DuoStatusContainer(view) == container &&
+            DuoIsVisible(view, container) && DuoEffectiveCarrierType(view)) {
+            DuoCoverNative(view);
+        } else {
+            DuoRestoreNetworkText(view);
+        }
+    }
     for (UIView *icon in self.icons) {
         if (DuoStatusContainer(icon) == container && DuoIsVisible(icon, container)) DuoCoverNative(icon);
     }
@@ -556,6 +600,43 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     self.updating = NO;
 }
 @end
+
+static DuoStatusController *DuoControllerForContainer(UIView *container) {
+    if (!container) return nil;
+    DuoStatusController *controller = objc_getAssociatedObject(container, &DuoContainerKey);
+    if (!controller) {
+        controller = [DuoStatusController new];
+        controller.container = container;
+        [DuoControllers addObject:controller];
+        objc_setAssociatedObject(container, &DuoContainerKey, controller, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    return controller;
+}
+
+static void DuoRegisterNetworkView(_UIStatusBarStringView *view) {
+    NSString *networkType = DuoEffectiveCarrierType(view);
+    UIView *container = DuoStatusContainer(view);
+    DuoStatusController *previous = objc_getAssociatedObject(view, &DuoNetworkControllerKey);
+    if (!networkType || !container) {
+        if (previous) {
+            [previous.networkViews removeObject:view];
+            [previous scheduleUpdate];
+            objc_setAssociatedObject(view, &DuoNetworkControllerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        DuoRestoreNetworkText(view);
+        return;
+    }
+    if (previous && previous.container != container) {
+        [previous.networkViews removeObject:view];
+        DuoRestoreNetworkText(view);
+        [previous scheduleUpdate];
+        objc_setAssociatedObject(view, &DuoNetworkControllerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    DuoStatusController *controller = DuoControllerForContainer(container);
+    objc_setAssociatedObject(view, &DuoNetworkControllerKey, controller, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [controller.networkViews addObject:view];
+    [controller scheduleUpdate];
+}
 
 static void DuoRegisterIcon(UIView *icon) {
     if (![icon isKindOfClass:DuoBatteryClass] && ![icon isKindOfClass:DuoWifiClass]
@@ -572,13 +653,7 @@ static void DuoRegisterIcon(UIView *icon) {
         DuoRestoreNative(icon);
         return;
     }
-    DuoStatusController *controller = objc_getAssociatedObject(container, &DuoContainerKey);
-    if (!controller) {
-        controller = [DuoStatusController new];
-        controller.container = container;
-        [DuoControllers addObject:controller];
-        objc_setAssociatedObject(container, &DuoContainerKey, controller, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    }
+    DuoStatusController *controller = DuoControllerForContainer(container);
     objc_setAssociatedObject(icon, &DuoIconControllerKey, controller, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     [controller.icons addObject:icon];
     [controller scheduleUpdate];
@@ -634,19 +709,36 @@ static void DuoPreferencesDidChange(CFNotificationCenterRef center, void *observ
 %group DuoPercentageHooks
 %hook _UIStatusBarStringView
 - (void)setText:(NSString *)text {
-    if (DuoEnabled && DuoControlCenterVisible(self) && DuoIsBatteryPercentage(text)) {
+    if (DuoCarrierType(self.text)) DuoRestoreNative(self);
+    if (DuoSpringBoard && DuoEnabled && DuoControlCenterVisible(self) && DuoIsBatteryPercentage(text)) {
         objc_setAssociatedObject(self, &DuoSavedPercentageKey, text, OBJC_ASSOCIATION_COPY_NONATOMIC);
         [DuoPercentageViews addObject:self];
         %orig(@"");
         return;
     }
-    objc_setAssociatedObject(self, &DuoSavedPercentageKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if (DuoSpringBoard) objc_setAssociatedObject(self, &DuoSavedPercentageKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     %orig;
-    if (DuoIsBatteryPercentage(text)) [DuoPercentageViews addObject:self];
+    if (DuoSpringBoard && DuoIsBatteryPercentage(text)) [DuoPercentageViews addObject:self];
+    DuoRegisterNetworkView(self);
 }
 - (void)layoutSubviews {
+    if (DuoCarrierType(self.text)) DuoRestoreNative(self);
     %orig;
-    DuoSyncPercentage(self);
+    if (DuoSpringBoard) DuoSyncPercentage(self);
+    DuoRegisterNetworkView(self);
+}
+- (void)didMoveToWindow {
+    if (DuoCarrierType(self.text)) DuoRestoreNative(self);
+    %orig;
+    DuoRegisterNetworkView(self);
+}
+- (void)setHidden:(BOOL)hidden {
+    %orig;
+    DuoRegisterNetworkView(self);
+}
+- (void)setAlpha:(CGFloat)alpha {
+    %orig;
+    DuoRegisterNetworkView(self);
 }
 %end
 %end
@@ -864,7 +956,7 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
             UIApplicationDidBecomeActiveNotification object:nil queue:NSOperationQueue.mainQueue
             usingBlock:refreshStatusBars];
         DuoActivationObserver = @[foregroundObserver, activeObserver];
-        if (DuoSpringBoard && NSClassFromString(@"_UIStatusBarStringView")) %init(DuoPercentageHooks);
+        if (NSClassFromString(@"_UIStatusBarStringView")) %init(DuoPercentageHooks);
         %init(DuoBatteryHooks);
         %init(DuoSignalDataHooks);
         %init(DuoWifiHooks);

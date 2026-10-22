@@ -13,6 +13,7 @@ on:
       - 'v0.2.4-beta.5'
       - 'v0.2.4-beta.6'
       - 'v0.2.4-beta.7'
+      - 'v0.2.4-beta.8'
 
 permissions:
   contents: write
@@ -39,11 +40,11 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$GITHUB_REF_TYPE" == "branch" ]]; then
-            beta=7
+            beta=8
           else
             beta="${GITHUB_REF_NAME##*.}"
           fi
-          if [[ "$beta" != "2" && "$beta" != "3" && "$beta" != "4" && "$beta" != "5" && "$beta" != "6" && "$beta" != "7" ]]; then
+          if [[ "$beta" != "2" && "$beta" != "3" && "$beta" != "4" && "$beta" != "5" && "$beta" != "6" && "$beta" != "7" && "$beta" != "8" ]]; then
             echo "Unsupported beta tag: $GITHUB_REF_NAME" >&2
             exit 1
           fi
@@ -86,11 +87,11 @@ jobs:
           prerelease: true
           make_latest: false
           body: |
-            RootHide-only test build for the Personal Hotspot status-bar fix.
+            RootHide-only test build that keeps DuoBar's battery, Wi-Fi, cellular dots, and Personal Hotspot indicator together while showing compact 5G/LTE service text inside the circle.
 
-            This beta keeps DuoBar visible when an app status-bar container omits the native battery view, recognizes hotspot symbols rendered as vector/template images, and coalesces status-bar updates while Control Center opens and closes. It uses one stable Control Center offset and does not transform neighboring iOS indicators. Live behavior still needs confirmation on an iPhone.
+            This beta adds a compact 5G/LTE label inside DuoBar in app status bars and Control Center, and covers the matching native carrier text only while the DuoBar label is visible. The usual Wi-Fi mark remains when no carrier label is present, and the hotspot link keeps its existing center priority. It also keeps DuoBar visible when an app status-bar container omits the native battery view, recognizes hotspot symbols rendered as vector/template images, and coalesces status-bar updates while Control Center opens and closes. Live behavior still needs confirmation on an iPhone.
 
-            Install the attached `DuoBar_0.2.4-beta${{ steps.version.outputs.beta }}_RootHide.deb` with a RootHide-compatible package manager and respring. Test the hotspot link inside DuoBar in Settings and Control Center, test the size slider at 70%, 100%, and 140% in apps and Control Center, and rapidly open and close Control Center to check for jumping or disappearance.
+            Install the attached `DuoBar_0.2.4-beta${{ steps.version.outputs.beta }}_RootHide.deb` with a RootHide-compatible package manager and respring. Test 5G/LTE text inside DuoBar in apps and Control Center, normal Wi-Fi when the carrier label is absent, the hotspot link in Settings and Control Center, the size slider at 70%, 100%, and 140%, and rapidly open and close Control Center to check for jumping or disappearance.
 
             Rootless packaging and the stable/Sileo release are deferred until testing is complete.
           files: |

@@ -110,6 +110,27 @@ static void DuoArc(CGPoint center, CGFloat radius, CGFloat start, CGFloat end, U
 
     if (self.hotspotActive) {
         // The matching iOS status-bar image is drawn by hotspotImageView.
+    } else if (self.networkType.length > 0) {
+        // Carrier technology replaces Wi-Fi in the same compact center space.
+        // Use Apple's short 5G/LTE labels and size them to the original glyph.
+        CGFloat fontSize = [self.networkType isEqualToString:@"LTE"] ? 7.0 : 8.0;
+        UIFont *networkFont = [UIFont systemFontOfSize:fontSize weight:UIFontWeightBold];
+        NSDictionary *attributes = @{
+            NSFontAttributeName: networkFont,
+            NSForegroundColorAttributeName: foreground,
+            NSParagraphStyleAttributeName: paragraph,
+        };
+        CGFloat maxWidth = 19.0;
+        while ([self.networkType sizeWithAttributes:attributes].width > maxWidth && fontSize > 5.5) {
+            fontSize -= 0.25;
+            networkFont = [UIFont systemFontOfSize:fontSize weight:UIFontWeightBold];
+            attributes = @{
+                NSFontAttributeName: networkFont,
+                NSForegroundColorAttributeName: foreground,
+                NSParagraphStyleAttributeName: paragraph,
+            };
+        }
+        [self.networkType drawInRect:CGRectMake(6.5, 13, 19, 10) withAttributes:attributes];
     } else if (self.wifiVisible) {
         CGContextSaveGState(context);
         CGContextTranslateCTM(context, 9, 13);

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.4 beta 8 — Compact 5G/LTE status label
+
+- Put the native 5G/LTE carrier label inside DuoBar in app status bars and Control Center.
+- Fit the short carrier label in the existing center slot; show the usual Wi-Fi mark when no carrier label is present, and keep the hotspot link as the center mark while connected.
+- Keep the battery ring, cellular dots, and size setting unchanged.
+- Keep the hotspot link as the center glyph whenever Personal Hotspot is connected.
+- RootHide test build only; Rootless and stable/Sileo releases remain deferred.
+
 ## 0.2.4 beta 7 — Restore hotspot glyph and stabilize transitions
 
 - Detect Personal Hotspot chain symbols even when iOS exposes them as vector/template images.
