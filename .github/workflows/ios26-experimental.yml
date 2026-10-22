@@ -1,0 +1,97 @@
+name: Build DuoBar iOS 26 Experimental Rootless
+
+on:
+  push:
+    branches: [feature/ios26-rootless-experimental-v0.2.8]
+    paths: ['.github/workflows/ios26-experimental.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rootless-ios26:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install standard Rootless build prerequisites
+        run: brew install make ldid dpkg gnu-tar xz rsync
+      - name: Configure Theos environment
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Fetch standard Theos and available iOS SDK
+        run: |
+          git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+          echo 'WARNING: Built against the available iOS 16.5 SDK. iOS 26 runtime testing is mandatory.'
+      - name: Build and inspect firmware-restricted experimental Rootless package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp packaging/control.ios26 control
+          grep -Fq 'version.majorVersion != 26' Sources/Tweak.xm
+          grep -Fq 'version.minorVersion != 0' Sources/Tweak.xm
+          grep -Fq 'version.patchVersion > 1' Sources/Tweak.xm
+          grep -Fq 'Leaving native indicators unchanged' Sources/Tweak.xm
+          test "$(sed -n 's/^Package: //p' control)" = "local.duobar.ios26"
+          test "$(sed -n 's/^Version: //p' control)" = "0.2.8~ios26beta1"
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS=arm64 TARGET=iphone:clang:16.5:16.0
+          files=(packages/*.deb)
+          test "${#files[@]}" -eq 1
+          deb="${files[0]}"
+          test "$(dpkg-deb -f "$deb" Package)" = "local.duobar.ios26"
+          test "$(dpkg-deb -f "$deb" Version)" = "0.2.8~ios26beta1"
+          test "$(dpkg-deb -f "$deb" Architecture)" = "iphoneos-arm64"
+          deps="$(dpkg-deb -f "$deb" Depends)"
+          echo "$deps"
+          [[ "$deps" == *"firmware (>= 26.0)"* ]]
+          [[ "$deps" == *"firmware (<< 26.0.2)"* ]]
+          dpkg-deb --contents "$deb" | tee contents.txt
+          grep -Fq 'var/jb/Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib' contents.txt
+          grep -Fq 'var/jb/Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarIcon.png' contents.txt
+          grep -Fq 'var/jb/Library/PreferenceLoader/Preferences/DuoBar.plist' contents.txt
+          dpkg-deb --extract "$deb" extracted
+          python3 - <<'PY'
+          from pathlib import Path
+          import plistlib
+          base=Path("extracted/var/jb/Library")
+          bundle=base/"PreferenceBundles/DuoBarPrefs.bundle"
+          pref=base/"PreferenceLoader/Preferences"
+          assert (base/"MobileSubstrate/DynamicLibraries/DuoBar.dylib").is_file()
+          assert plistlib.loads((bundle/"Info.plist").read_bytes())["CFBundleShortVersionString"]=="0.2.8"
+          assert plistlib.loads((pref/"DuoBar.plist").read_bytes())["entry"]["icon"]=="DuoBar.png"
+          for f in [bundle/"DuoBar.png",bundle/"DuoBar@2x.png",bundle/"DuoBar@3x.png",bundle/"DuoBarIcon.png"]:
+              data=f.read_bytes()
+              assert data[:8]==bytes.fromhex("89504e470d0a1a0a") and data[25]==6, f
+          print("Validated separate iOS26 Rootless firmware, icon and package structure")
+          PY
+          cp "$deb" DuoBar_0.2.8-iOS26-Rootless-Beta1.deb
+          shasum -a 256 DuoBar_0.2.8-iOS26-Rootless-Beta1.deb > SHA256SUMS.txt
+      - name: Upload experimental installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuoBar-iOS26-rootless-experimental-0.2.8-beta1
+          path: |
+            DuoBar_0.2.8-iOS26-Rootless-Beta1.deb
+            SHA256SUMS.txt
+          if-no-files-found: error
+      - name: Publish opt-in GitHub prerelease, never Sileo
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view v0.2.8-ios26-beta.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Experimental prerelease exists; refusing to overwrite" >&2
+            exit 1
+          fi
+          gh release create v0.2.8-ios26-beta.1 \
+            DuoBar_0.2.8-iOS26-Rootless-Beta1.deb SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "DuoBar iOS 26 — Experimental Rootless Beta 1" \
+            --notes-file docs/IOS26-EXPERIMENTAL.md --prerelease
