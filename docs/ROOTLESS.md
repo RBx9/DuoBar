@@ -26,9 +26,7 @@ Test Personal Hotspot connecting/disconnecting, transitions, rotation lock,
 and size values of 70%, 100% and 140%. Ensure the off switch restores native
 icons. Report bugs with screenshots if possible.
 
-The underlying RootHide features were tested on-device; v2.7.1 retains the same functionality, but the standard Rootless
-edition still has no independent on-device confirmation. Automated compilation
-and package verification cannot guarantee iOS private status-bar compatibility.
+The underlying RootHide features were tested on-device, and **community members have now also tested the standard Rootless edition on actual iPhones**. The v2.7.1 packages passed automated compilation and file-layout checks, but this does not establish compatibility with every iOS 16 build or iPhone model. Please continue reporting device-specific issues.
 
 If a conflict, missing UI, or SpringBoard crash occurs, remove the package via
 your package manager or jailbreak safe mode. The known working RootHide package
