@@ -550,8 +550,8 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
         // Keep the last valid DuoBar and cover any native views that have
         // already moved into this same container; restoring them here makes
         // the stock battery flash back for the duration of that transition.
-        BOOL keepTransitionOverlay = self.glyph.superview == container &&
-            !self.glyph.hidden && container.window;
+        BOOL keepTransitionOverlay = CGRectGetHeight(container.bounds) < 16 &&
+            self.glyph.superview == container && !self.glyph.hidden && container.window;
         if (keepTransitionOverlay) {
             for (UIView *icon in self.icons) {
                 if (DuoStatusContainer(icon) == container && DuoIsVisible(icon, container))

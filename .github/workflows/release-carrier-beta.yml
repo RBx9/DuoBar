@@ -37,13 +37,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq 'DUO_VERSION @"2.7.2-beta.2"' Shared/DuoMetadata.h
+          grep -Fq 'DUO_VERSION @"2.7.2-beta.3"' Shared/DuoMetadata.h
           gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide TARGET=iphone:clang:16.5:16.0
           files=(packages/*.deb)
           test "${#files[@]}" -eq 1
           deb="${files[0]}"
           test "$(dpkg-deb -f "$deb" Package)" = local.duobar
-          test "$(dpkg-deb -f "$deb" Version)" = '2.7.2~beta2'
+          test "$(dpkg-deb -f "$deb" Version)" = '2.7.2~beta3'
           test "$(dpkg-deb -f "$deb" Architecture)" = iphoneos-arm64e
           dpkg-deb --contents "$deb" | tee contents.txt
           grep -Fq 'Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib' contents.txt
@@ -65,15 +65,15 @@ jobs:
               assert image[:8] == bytes.fromhex("89504e470d0a1a0a") and image[25] == 6, name
           print("Validated RootHide package, Settings metadata, and icons")
           PY
-          cp "$deb" DuoBar_2.7.2-beta2_RootHide.deb
-          shasum -a 256 DuoBar_2.7.2-beta2_RootHide.deb > SHA256SUMS-RootHide.txt
+          cp "$deb" DuoBar_2.7.2-beta3_RootHide.deb
+          shasum -a 256 DuoBar_2.7.2-beta3_RootHide.deb > SHA256SUMS-RootHide.txt
 
       - name: Publish GitHub prerelease
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.7.2-beta.2
+          tag_name: v2.7.2-beta.3
           target_commitish: ${{ github.sha }}
-          name: DuoBar v2.7.2 Beta 2 (RootHide)
+          name: DuoBar v2.7.2 Beta 3 (RootHide)
           prerelease: true
           make_latest: false
           overwrite_files: true
@@ -82,9 +82,9 @@ jobs:
 
             This beta draws the compact 5G/LTE carrier label inside DuoBar in app status bars and Control Center. It also refreshes and covers status icons synchronously when UIKit rebuilds the status bar during rotation or Control Center transitions, preventing the stock battery from flashing back. The Wi-Fi and Personal Hotspot marks remain in the ring, and the released settings, size slider, battery percentage, cellular dots, and Control Center behavior are retained.
 
-            Install the attached `DuoBar_2.7.2-beta2_RootHide.deb` with a RootHide-compatible package manager and respring. Use `docs/TEST-v2.7.2-beta2.md` for the device checks. Compilation and package contents are verified; live iPhone behavior still needs testing.
+            Install the attached `DuoBar_2.7.2-beta3_RootHide.deb` with a RootHide-compatible package manager and respring. Use `docs/TEST-v2.7.2-beta3.md` for the device checks. Compilation and package contents are verified; live iPhone behavior still needs testing.
 
             Rootless packaging and the stable/Sileo release are deferred until this RootHide beta is tested.
           files: |
-            DuoBar_2.7.2-beta2_RootHide.deb
+            DuoBar_2.7.2-beta3_RootHide.deb
             SHA256SUMS-RootHide.txt

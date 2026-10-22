@@ -6,6 +6,11 @@
 - Refresh DuoBar synchronously after status-bar layout and keep the native battery covered through transient rotation and Control Center geometry.
 - RootHide beta only; the Rootless and stable/Sileo releases remain deferred until device testing.
 
+## 2.7.2 beta 3 — Keep transition coverage scoped
+
+- Preserve the previous overlay only for zero-height UIKit layout transitions, avoiding stale overlays in retiring status-bar containers.
+- RootHide beta only; the Rootless and stable/Sileo releases remain deferred until device testing.
+
 ## 0.2.4 beta 8 — Compact 5G/LTE status label
 
 - Put the native 5G/LTE carrier label inside DuoBar in app status bars and Control Center.
