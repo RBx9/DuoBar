@@ -1,6 +1,6 @@
 # DuoBar
 
-An iPhone Duo-inspired status bar for **iOS 16 with Dopamine RootHide**. DuoBar brings battery percentage, Wi-Fi strength, and cellular signal together in one circular icon.
+An iPhone Duo-inspired status bar for **iOS 16 with Dopamine RootHide or standard Rootless**. DuoBar brings battery percentage, Wi-Fi strength, and cellular signal together in one circular icon.
 
 Developed by **RBx9** · [Twitter / X: @RedaBuali](https://twitter.com/RedaBuali)
 
@@ -21,9 +21,9 @@ The **RBx9 Repo** hosts two distinct iOS 16 packages: **DuoBar (RootHide)** for 
 
 [**Download DuoBar v0.2.6 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v0.2.6/DuoBar_0.2.6_RootHide.deb)
 
-[All releases](https://github.com/RBx9/DuoBar/releases) · [Previous stable v0.2.5](https://github.com/RBx9/DuoBar/releases/tag/v0.2.5)
+[**Unified v0.2.6 Release (RootHide and Rootless)**](https://github.com/RBx9/DuoBar/releases/tag/v0.2.6) · [Previous stable v0.2.5](https://github.com/RBx9/DuoBar/releases/tag/v0.2.5)
 
-**Standard Rootless edition:** [Rootless v0.2.6 release](https://github.com/RBx9/DuoBar/releases/tag/v0.2.6-rootless.1) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. Build verification is required before publishing; it still needs an on-device Rootless test.
+**Standard Rootless edition:** [DuoBar v0.2.6 Rootless .deb](https://github.com/RBx9/DuoBar/releases/download/v0.2.6/DuoBar_0.2.6_Rootless.deb) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. The package passed build verification but still needs an on-device Rootless test.
 
 No compiling is needed. The RootHide package uses `iphoneos-arm64e`; standard Rootless uses `iphoneos-arm64`.
 

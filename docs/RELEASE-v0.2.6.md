@@ -1,24 +1,30 @@
-# DuoBar v0.2.6 — Settings Polish and Feedback
+# DuoBar v0.2.6 — RootHide + Rootless
 
-**Stable RootHide release for iOS 16.x with Dopamine RootHide.**
+**One release, two separate installers for iOS 16.x.** Choose the package that matches your jailbreak. Both packages are also in the [RBx9 Sileo repository](https://rbx9.github.io/).
 
-## What's new
+| Jailbreak | Download | Architecture | Package |
+| --- | --- | --- | --- |
+| **Dopamine RootHide** | [DuoBar_0.2.6_RootHide.deb](https://github.com/RBx9/DuoBar/releases/download/v0.2.6/DuoBar_0.2.6_RootHide.deb) | `iphoneos-arm64e` | `local.duobar` |
+| **Standard Dopamine Rootless** | [DuoBar_0.2.6_Rootless.deb](https://github.com/RBx9/DuoBar/releases/download/v0.2.6/DuoBar_0.2.6_Rootless.deb) | `iphoneos-arm64` | `local.duobar.rootless` |
 
-- Removed the white square behind DuoBar's rounded Settings icon, preserving the original blue artwork with transparent corners.
-- Added **Report a Bug**, which opens a prefilled email draft with version and reproduction fields and encourages attaching a screenshot or short video.
-- Added **Help Test Other iOS Versions**, allowing volunteers to share their device, iOS version and jailbreak to help with future compatibility.
-- Preserves the working hotspot-in-circle, rotation-lock spacing, transition fixes and 70%–140% size slider.
+## What's new in v0.2.6
 
-## Install or upgrade
+- Clean, rounded DuoBar Settings icon with transparent corners instead of a white square background.
+- **Report a Bug:** opens a prefilled email draft with version and reproduction details, and suggests attaching a screenshot or screen recording.
+- **Help Test Other iOS Versions:** an invitation for volunteers to share their iPhone, iOS and jailbreak details for future compatibility work.
+- Keeps the in-ring Personal Hotspot icon, rotation-lock positioning, smoother Control Center transitions, and adjustable 70%–140% size.
 
-Open **Sileo → Sources → RBx9 Repo** (`https://rbx9.github.io/`), refresh and upgrade **DuoBar (RootHide)** to **0.2.6**. Respring and close/reopen Settings to refresh its icon.
+## Installation
 
-Manual installer: `DuoBar_0.2.6_RootHide.deb` (attached to this release).
+Add `https://rbx9.github.io/` in **Sileo → Sources**, refresh and install **DuoBar (RootHide)** or **DuoBar (Rootless)**, depending on your jailbreak. Respring after installation and close/reopen Settings if the old icon remains cached.
 
-**Package:** `local.duobar` · **Version:** `0.2.6` · **Architecture:** `iphoneos-arm64e` · **iOS:** 16.x · **Jailbreak:** Dopamine RootHide.
+Or download the corresponding installer above and install with a compatible package manager. **Do not install both editions together or install one edition on the other jailbreak environment.**
 
-The new email actions only open editable drafts; screenshots must be attached manually and nothing is sent without user approval.
+## Compatibility and testing
 
-**Rootless:** the separately packaged edition remains at v0.2.3 until its updated package passes verification. Rootless compatibility needs real-device confirmation; do not install the RootHide installer on Rootless.
+- **RootHide** was tested and approved on a compatible iOS 16 device.
+- **Rootless** compiled and passed package/architecture, `/var/jb` installation layout, and preference/icon checks. **The Rootless edition has not yet been confirmed on a physical Rootless iPhone.** Please help test it and report problems using the Settings feedback feature.
 
-Developer: **RBx9** · [Sileo Source](https://rbx9.github.io/) · [GitHub](https://github.com/RBx9/DuoBar).
+The feedback actions open editable email drafts; sending is always the user's choice and screenshots are attached manually.
+
+**Developer:** RBx9 · [Source code](https://github.com/RBx9/DuoBar) · [Sileo repository](https://rbx9.github.io/).

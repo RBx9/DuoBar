@@ -1,0 +1,56 @@
+name: Combine DuoBar v0.2.6 stable installers
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/combine-v0.2.6.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  combine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified Rootless installer from existing prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download v0.2.6-rootless.1 --repo "$GITHUB_REPOSITORY" \
+            --pattern 'DuoBar_0.2.6_Rootless.deb' --pattern 'SHA256SUMS-rootless.txt' --dir .
+          test -s DuoBar_0.2.6_Rootless.deb
+          sha256sum --check SHA256SUMS-rootless.txt
+          echo '3c7fa49849f08e173c25885e99759fbffbecb9723e76dcf1e19a01f458cd432b  DuoBar_0.2.6_Rootless.deb' | sha256sum --check -
+          test "$(dpkg-deb -f DuoBar_0.2.6_Rootless.deb Package)" = local.duobar.rootless
+          test "$(dpkg-deb -f DuoBar_0.2.6_Rootless.deb Version)" = 0.2.6
+          test "$(dpkg-deb -f DuoBar_0.2.6_Rootless.deb Architecture)" = iphoneos-arm64
+      - name: Attach Rootless to existing stable release and update notes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view v0.2.6 --repo "$GITHUB_REPOSITORY"
+          # Deliberately refuse an accidental overwrite of an existing .deb.
+          if gh release view v0.2.6 --repo "$GITHUB_REPOSITORY" --json assets \
+                --jq '.assets[].name' | grep -Fxq DuoBar_0.2.6_Rootless.deb; then
+            echo 'Rootless installer already attached; not overwriting' >&2
+          else
+            gh release upload v0.2.6 \
+              DuoBar_0.2.6_Rootless.deb SHA256SUMS-rootless.txt \
+              --repo "$GITHUB_REPOSITORY"
+          fi
+          gh release edit v0.2.6 --repo "$GITHUB_REPOSITORY" \
+            --title "DuoBar v0.2.6 — RootHide + Rootless" \
+            --notes-file docs/RELEASE-v0.2.6.md
+          gh release view v0.2.6 --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq '.assets[].name' | tee stable-assets.txt
+          grep -Fxq DuoBar_0.2.6_RootHide.deb stable-assets.txt
+          grep -Fxq DuoBar_0.2.6_Rootless.deb stable-assets.txt
+          gh release view v0.2.6 --repo "$GITHUB_REPOSITORY" --json isPrerelease,isDraft \
+            --jq '(.isPrerelease|not) and (.isDraft|not)' | grep -Fxq true
