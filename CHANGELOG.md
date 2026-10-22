@@ -1,75 +1,18 @@
 # Changelog
 
-## 2.7.1 — Version numbering update
+## 2.7.2 beta 2 — Rotation and Control Center transition fix
 
-- Switched the stable version from v0.2.7 to v2.7.1 for both RootHide and Rootless editions.
-- Updated package, Settings, GitHub release, and Sileo version metadata.
-- Preserved existing iOS 16 features, settings, and status-bar behavior.
+- Rescan status-bar battery, Wi-Fi, cellular, hotspot, and 5G/LTE views after UIKit rebuilds them.
+- Refresh DuoBar synchronously after status-bar layout and keep the native battery covered through transient rotation and Control Center geometry.
+- RootHide beta only; the Rootless and stable/Sileo releases remain deferred until device testing.
 
-## 0.2.7 — Improvements
+## 0.2.4 beta 8 — Compact 5G/LTE status label
 
-- Improved the overall settings experience and update links.
-- Preserved DuoBar's existing appearance, hotspot behavior, size adjustment and Control Center fixes.
-- Built and verified separate RootHide and Rootless installers for iOS 16.
-
-## 0.2.6 — Separate Rootless build
-
-- Updated the standard Rootless package to the same v0.2.6 code used by RootHide, including transparent Settings icons, bug-report and iOS-testing email shortcuts, hotspot support, Control Center fixes and size control.
-- Verified the Rootless package architecture and installation prefix separately.
-- Standard Rootless runtime support still requires testing on an actual compatible iPhone.
-
-## 0.2.6 — Settings icon and feedback
-
-- Removed the white square around DuoBar's Settings icon using transparent PNG corners at all display sizes.
-- Added an optional bug-report email draft with iOS/DuoBar version fields and a reminder to attach screenshots or screen recordings.
-- Added an invitation for volunteers to help test compatibility with other iOS versions.
-- Kept the working Personal Hotspot, Control Center rotation-lock, smooth transitions, and size-slider features unchanged.
-- RootHide stable release approved after testing v0.2.6 Beta 2.
-
-## 0.2.6 beta 2 — Bug reports and iOS testing
-
-- Added a Report a Bug button that prepares a structured email with the current DuoBar and iOS versions.
-- Suggests attaching an optional screenshot or short recording before sending the report.
-- Added a volunteer-testing email shortcut for users who can help validate additional iOS versions.
-- Preserves the transparent icon fix and existing status-bar behavior.
-- RootHide test release only; public Sileo remains on v0.2.5.
-
-## 0.2.6 beta 1 — Settings icon cleanup
-
-- Remove the white square backing from the rounded DuoBar icon in the Settings list.
-- Keep the same blue DuoBar artwork and use transparent corner pixels at each display scale.
-- RootHide test build; v0.2.5 stable remains available in Sileo.
-
-## 0.2.5 — Personal Hotspot and Control Center fixes (RootHide stable)
-
-- Display the iOS Personal Hotspot chain-link symbol inside the DuoBar circle rather than next to the status-bar indicators.
-- Move the rotation-lock status icon beside DuoBar in Control Center with a 10-point target gap, using window-space positioning and restoring the original transform when inactive.
-- Prevent stock battery and cellular indicators briefly flashing when opening or closing Control Center.
-- Preserve the 70%–140% size slider, Settings icon, Wi-Fi/cellular display, and live on/off switch.
-- Promoted from user-tested v0.2.4 Beta 10. The separate Rootless package remains at v0.2.3.
-
-## 0.2.4 beta 10 — Rotation-lock status hierarchy
-
-- Search the Control Center status container and, if needed, the enclosing window for the overlapping rotation-lock image instead of assuming it is a DuoBar child.
-- Position only the selected status indicator using window-space geometry, avoiding the overly narrow battery-container clamp that prevented earlier shifts.
-- Keep the 10-point target gap and preserve the original UIKit transform for restoration.
-- Do not change the hotspot indicator, no-flash transitions, drawing, size slider or stable packages.
-- RootHide device-test build; Sileo remains on v0.2.3.
-
-## 0.2.4 beta 9 — More rotation-lock spacing
-
-- Move the rotation-lock indicator up to five additional points left by expanding the desired gap with DuoBar from 5 to 10 points.
-- Retain the safe screen-edge clamp, hotspot symbol and no-flash transition fixes from beta 8.
-- RootHide-only device test; Sileo remains on stable v0.2.3.
-
-## 0.2.4 beta 8 — Rotation lock and status-bar transitions
-
-- Restore a safe Control Center rotation-lock adjustment, moving an overlapping lock indicator just LEFT of the DuoBar ring.
-- Preserve and restore UIKit's original orientation-icon transform when Control Center closes or the tweak is switched off.
-- Re-cover native battery/Wi-Fi/cellular layers synchronously after UIKit layout rather than allowing a visible stock-icon flash before the next deferred redraw.
-- Render new status-bar containers in the same layout cycle to reduce transition flashes.
-- Keep the working hotspot link inside the DuoBar circle and retain the size slider.
-- Test build only; leave public Sileo v0.2.3 unchanged.
+- Put the native 5G/LTE carrier label inside DuoBar in app status bars and Control Center.
+- Fit the short carrier label in the existing center slot; show the usual Wi-Fi mark when no carrier label is present, and keep the hotspot link as the center mark while connected.
+- Keep the battery ring, cellular dots, and size setting unchanged.
+- Keep the hotspot link as the center glyph whenever Personal Hotspot is connected.
+- RootHide test build only; Rootless and stable/Sileo releases remain deferred.
 
 ## 0.2.4 beta 7 — Restore hotspot glyph and stabilize transitions
 

@@ -43,6 +43,9 @@ static Class DuoBatteryClass, DuoWifiClass, DuoCellularClass, DuoForegroundClass
 static void DuoScanHotspotIndicators(UIView *container);
 static BOOL DuoEnabled = YES;
 static CGFloat DuoSizeScale = 1.0;
+static void DuoRegisterIcon(UIView *icon);
+static void DuoRegisterNetworkView(_UIStatusBarStringView *view);
+static void DuoScanStatusIcons(UIView *container);
 
 static CGFloat DuoReadSizeScale(void) {
     CFPreferencesAppSynchronize(CFSTR("local.duobar"));
@@ -542,6 +545,26 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     if ((!battery && (!isfinite(fallbackCharge) ||
                       fallbackCharge < 0 || fallbackCharge > 1)) ||
         CGRectIsNull(area) || CGRectGetHeight(container.bounds) < 16) {
+        // UIKit briefly reports empty/zero-sized status-bar geometry while
+        // rotating and while Control Center swaps its status-bar hierarchy.
+        // Keep the last valid DuoBar and cover any native views that have
+        // already moved into this same container; restoring them here makes
+        // the stock battery flash back for the duration of that transition.
+        BOOL keepTransitionOverlay = self.glyph.superview == container &&
+            !self.glyph.hidden && container.window;
+        if (keepTransitionOverlay) {
+            for (UIView *icon in self.icons) {
+                if (DuoStatusContainer(icon) == container && DuoIsVisible(icon, container))
+                    DuoCoverNative(icon);
+            }
+            for (_UIStatusBarStringView *view in self.networkViews) {
+                if (DuoStatusContainer(view) == container && DuoIsVisible(view, container) &&
+                    DuoNetworkTechnology(view.text)) DuoCoverNative(view);
+            }
+            [self.glyph setNeedsDisplay];
+            self.updating = NO;
+            return;
+        }
         self.glyph.hidden = YES;
         for (UIView *icon in self.icons) DuoRestoreNative(icon);
         for (_UIStatusBarStringView *view in self.networkViews) DuoRestoreNative(view);
@@ -746,6 +769,28 @@ static void DuoRegisterNetworkView(_UIStatusBarStringView *view) {
     [controller scheduleUpdate];
 }
 
+// A status-bar container can replace its children during rotation and
+// Control Center presentation. Scan that small subtree after UIKit's layout
+// so newly created battery/network views are registered before the next frame.
+static void DuoScanStatusIcons(UIView *container) {
+    if (!container) return;
+    NSMutableArray<UIView *> *pending = [NSMutableArray arrayWithObject:container];
+    NSUInteger checked = 0;
+    while (pending.count && checked++ < 500) {
+        UIView *candidate = pending.lastObject;
+        [pending removeLastObject];
+        if ([candidate isKindOfClass:DuoBatteryClass] ||
+            [candidate isKindOfClass:DuoWifiClass] ||
+            [candidate isKindOfClass:DuoCellularClass] ||
+            DuoIsHotspotIndicator(candidate)) {
+            DuoRegisterIcon(candidate);
+        } else if ([candidate isKindOfClass:_UIStatusBarStringView.class]) {
+            DuoRegisterNetworkView((_UIStatusBarStringView *)candidate);
+        }
+        [pending addObjectsFromArray:candidate.subviews];
+    }
+}
+
 // Also discover a hotspot icon during status-bar relayout: some iOS 16
 // variants only update the image rather than moving its UIImageView.
 static void DuoScanHotspotIndicators(UIView *container) {
@@ -781,11 +826,16 @@ static void DuoKeepNetworkCoveredDuringLayout(_UIStatusBarStringView *view) {
 }
 
 static void DuoUpdateContainer(UIView *container) {
+    DuoScanStatusIcons(container);
     DuoStatusController *controller = objc_getAssociatedObject(container, &DuoContainerKey);
     if (!controller) return;
-    if (DuoEnabled && controller.glyph.hidden && !controller.updating) {
-        // Newly visible status-bar containers cannot wait for another frame.
+    if (!controller.updating) {
+        // Recompute synchronously after UIKit has laid out the status bar.
+        // This keeps DuoBar aligned and re-covers UIKit's freshly drawn
+        // battery layers before a rotation/Control Center transition renders.
         [controller update];
+    } else {
+        [controller scheduleUpdate];
     }
     [controller scheduleUpdate];
 }
