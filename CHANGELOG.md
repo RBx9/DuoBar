@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.6 — Separate Rootless build
+
+- Updated the standard Rootless package to the same v0.2.6 code used by RootHide, including transparent Settings icons, bug-report and iOS-testing email shortcuts, hotspot support, Control Center fixes and size control.
+- Verified the Rootless package architecture and installation prefix separately.
+- Standard Rootless runtime support still requires testing on an actual compatible iPhone.
+
 ## 0.2.6 — Settings icon and feedback
 
 - Removed the white square around DuoBar's Settings icon using transparent PNG corners at all display sizes.

@@ -23,7 +23,7 @@ The **RBx9 Repo** hosts two distinct iOS 16 packages: **DuoBar (RootHide)** for 
 
 [All releases](https://github.com/RBx9/DuoBar/releases) · [Previous stable v0.2.5](https://github.com/RBx9/DuoBar/releases/tag/v0.2.5)
 
-**Standard Rootless edition:** [Rootless release](https://github.com/RBx9/DuoBar/releases/tag/v0.2.3-rootless.1) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. The initial Rootless build is CI-verified but still needs an on-device test.
+**Standard Rootless edition:** [Rootless v0.2.6 release](https://github.com/RBx9/DuoBar/releases/tag/v0.2.6-rootless.1) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. Build verification is required before publishing; it still needs an on-device Rootless test.
 
 No compiling is needed. The RootHide package uses `iphoneos-arm64e`; standard Rootless uses `iphoneos-arm64`.
 
@@ -54,11 +54,11 @@ Existing DuoBar installations can be upgraded with the same package. See the [in
 
 The supplied download targets **iOS 16.x and Dopamine RootHide**, with tweak injection and PreferenceLoader. PreferenceLoader is declared as a package dependency. This download is not a standard Dopamine/rootless package.
 
-The v0.2.6 RootHide Settings changes were approved following Beta 2 testing. The separate Rootless edition remains at v0.2.3 until its new package passes build verification, and rootless device testing remains outstanding. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
+The v0.2.6 RootHide Settings changes were approved following Beta 2 testing. The separate Rootless v0.2.6 package uses the same code and receives its own Rootless build verification; real-device Rootless testing remains outstanding. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
 
 ## Build from source
 
-The stable RootHide installer is compiled by a dedicated GitHub Actions workflow with package metadata and transparent Settings icon verification. Rootless is a separate package and has not been updated with v0.2.5 changes.
+The stable RootHide installer is compiled by a dedicated GitHub Actions workflow with package metadata and transparent Settings icon verification. Rootless is a separately built package using standard Theos and the `iphoneos-arm64` architecture.
 
 Local builds require Theos, an iOS SDK, and a compatible compiler. RootHide builds require the [RootHide Theos fork](https://github.com/roothide/theos):
 
