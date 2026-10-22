@@ -946,7 +946,12 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
 
 %ctor {
     @autoreleasepool {
-        if (NSProcessInfo.processInfo.operatingSystemVersion.majorVersion != 16) return;
+        // Experimental iOS 26 rootless edition. The stock iOS 16 packages
+        // are built separately and never load this build on older systems.
+        NSOperatingSystemVersion version = NSProcessInfo.processInfo.operatingSystemVersion;
+        if (version.majorVersion != 26 || version.minorVersion != 0 || version.patchVersion > 1) return;
+        NSLog(@"[DuoBar iOS26 Beta] Starting runtime compatibility probe (iOS %ld.%ld.%ld)",
+            (long)version.majorVersion, (long)version.minorVersion, (long)version.patchVersion);
         DuoControllers = [NSHashTable weakObjectsHashTable];
         DuoPercentageViews = [NSHashTable weakObjectsHashTable];
         DuoSpringBoard = [NSBundle.mainBundle.bundleIdentifier isEqualToString:@"com.apple.springboard"];
@@ -966,7 +971,15 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
               @"setNumberOfBars:", @"setNumberOfActiveBars:", @"setActiveColor:"]);
         BOOL wifiOK = DuoHasSelectors(DuoWifiClass, @[@"_updateActiveBars"]);
         BOOL cellOK = DuoHasSelectors(DuoCellularClass, @[@"_updateActiveBars"]);
-        if (!batteryOK || !signalOK || !wifiOK || !cellOK || !DuoStatusBarClass) return;
+        // Liquid Glass / UIKit internals may have changed on iOS 26.
+        // Incompatible versions must leave the stock status bar untouched,
+        // rather than install an unverified hook or hide native indicators.
+        if (!batteryOK || !signalOK || !wifiOK || !cellOK || !DuoStatusBarClass) {
+            NSLog(@"[DuoBar iOS26 Beta] Unsupported private status-bar API: battery=%d signal=%d wifi=%d cell=%d status=%d. Leaving native indicators unchanged.",
+                batteryOK, signalOK, wifiOK, cellOK, (BOOL)(DuoStatusBarClass != Nil));
+            return;
+        }
+        NSLog(@"[DuoBar iOS26 Beta] Private status-bar selectors matched; enabling experimental hooks");
         CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL,
             DuoPreferencesDidChange, CFSTR("local.duobar/preferences.changed"), NULL,
             CFNotificationSuspensionBehaviorDeliverImmediately);

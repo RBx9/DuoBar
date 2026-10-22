@@ -1,0 +1,14 @@
+Package: local.duobar.ios26
+Name: DuoBar (iOS 26 Experimental)
+Version: 0.2.8~ios26beta1
+Architecture: iphoneos-arm64
+Description: Experimental DuoBar circular battery, Wi-Fi and cellular indicator for iOS 26.
+ Standard Dopamine Rootless on iOS 26.0-26.0.1 only. Real-device tests pending.
+ Safe runtime guards leave native status icons intact if required private APIs are unavailable.
+Maintainer: RBx9
+Author: RBx9
+Homepage: https://github.com/RBx9/DuoBar
+Section: Tweaks
+Depends: mobilesubstrate, preferenceloader, firmware (>= 26.0), firmware (<< 26.0.2)
+Conflicts: local.duobar, local.duobar.rootless
+Tag: role::tweak
