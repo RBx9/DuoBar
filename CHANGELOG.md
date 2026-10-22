@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.7.1 — Version numbering update
+
+- Switched the stable version from v0.2.7 to v2.7.1 for both RootHide and Rootless editions.
+- Updated package, Settings, GitHub release, and Sileo version metadata.
+- Preserved existing iOS 16 features, settings, and status-bar behavior.
+
 ## 0.2.7 — Improvements
 
 - Improved the overall settings experience and update links.
