@@ -1,0 +1,131 @@
+name: Verify DuoBar 0.2.7 Telegram Beta
+
+on:
+  push:
+    branches: [feature/telegram-link-v0.2.7-beta1]
+    paths:
+      - '.github/workflows/telegram-beta-027.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.scheme }} package
+    runs-on: macos-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        scheme: [roothide, rootless]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: brew install make ldid dpkg gnu-tar xz rsync
+      - name: Configure Theos
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Download Theos and iOS 16.5 SDK
+        env:
+          SCHEME: ${{ matrix.scheme }}
+        run: |
+          if [ "$SCHEME" = roothide ]; then
+            git clone --recursive --depth 1 https://github.com/roothide/theos.git "$THEOS"
+          else
+            git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
+          fi
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+      - name: Compile and verify package
+        shell: bash
+        env:
+          SCHEME: ${{ matrix.scheme }}
+        run: |
+          set -euo pipefail
+          grep -Fq 'https://t.me/RBx9_Repo' duobarprefs/DuoRootListController.m
+          grep -Fq 'Telegram Channel: @RBx9_Repo' duobarprefs/DuoRootListController.m
+          grep -Fq 'Links & Updates' duobarprefs/DuoRootListController.m
+          if [ "$SCHEME" = rootless ]; then
+            cp packaging/control.rootless control
+            expected_package=local.duobar.rootless
+            expected_arch=iphoneos-arm64
+            prefix=var/jb/
+            name=Rootless
+            export ARCHS=arm64
+          else
+            expected_package=local.duobar
+            expected_arch=iphoneos-arm64e
+            prefix=
+            name=RootHide
+          fi
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME="$SCHEME" TARGET=iphone:clang:16.5:16.0
+          files=(packages/*.deb)
+          test "${#files[@]}" -eq 1
+          deb="${files[0]}"
+          test "$(dpkg-deb -f "$deb" Package)" = "$expected_package"
+          test "$(dpkg-deb -f "$deb" Version)" = "0.2.7~beta1"
+          test "$(dpkg-deb -f "$deb" Architecture)" = "$expected_arch"
+          dpkg-deb --contents "$deb" | tee package-contents.txt
+          grep -Fq "${prefix}Library/PreferenceBundles/DuoBarPrefs.bundle/" package-contents.txt
+          grep -Fq "${prefix}Library/PreferenceLoader/Preferences/DuoBar.plist" package-contents.txt
+          grep -Fq "${prefix}Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib" package-contents.txt
+          dpkg-deb --extract "$deb" extracted
+          PREFIX="$prefix" python3 - <<'PY'
+          import os, plistlib
+          from pathlib import Path
+          root=Path('extracted')/os.getenv('PREFIX')/'Library'
+          info=plistlib.loads((root/'PreferenceBundles/DuoBarPrefs.bundle/Info.plist').read_bytes())
+          assert info['CFBundleShortVersionString']=='0.2.7'
+          spec=plistlib.loads((root/'PreferenceLoader/Preferences/DuoBar.plist').read_bytes())
+          assert spec['entry']['icon']=='DuoBar.png'
+          assert (root/'PreferenceBundles/DuoBarPrefs.bundle/DuoBarIcon.png').exists()
+          print('Settings version, icon and RootHide/Rootless paths verified')
+          PY
+          cp "$deb" "DuoBar_0.2.7-beta1_${name}.deb"
+          shasum -a 256 "DuoBar_0.2.7-beta1_${name}.deb" > "SHA256SUMS-${name}.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DuoBar-027-beta-${{ matrix.scheme }}
+          path: |
+            DuoBar_0.2.7-beta1_*.deb
+            SHA256SUMS-*.txt
+          if-no-files-found: error
+
+  prerelease:
+    name: Publish GitHub test release only
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: DuoBar-027-beta-*
+          path: beta
+          merge-multiple: true
+      - name: Verify test files and create prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd beta
+          test -f DuoBar_0.2.7-beta1_RootHide.deb
+          test -f DuoBar_0.2.7-beta1_Rootless.deb
+          sha256sum -c SHA256SUMS-RootHide.txt
+          sha256sum -c SHA256SUMS-Rootless.txt
+          test "$(dpkg-deb -f DuoBar_0.2.7-beta1_RootHide.deb Version)" = "0.2.7~beta1"
+          test "$(dpkg-deb -f DuoBar_0.2.7-beta1_Rootless.deb Version)" = "0.2.7~beta1"
+          if gh release view v0.2.7-beta.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Beta tag exists, refusing to overwrite test packages" >&2
+            exit 1
+          fi
+          gh release create v0.2.7-beta.1 \
+            DuoBar_0.2.7-beta1_RootHide.deb DuoBar_0.2.7-beta1_Rootless.deb \
+            SHA256SUMS-RootHide.txt SHA256SUMS-Rootless.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "DuoBar v0.2.7 Beta 1 — Telegram Channel" \
+            --notes-file ../docs/TEST-v0.2.7-beta1.md --prerelease
