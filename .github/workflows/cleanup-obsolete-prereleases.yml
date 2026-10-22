@@ -1,0 +1,61 @@
+name: Remove obsolete public prereleases
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/cleanup-obsolete-prereleases.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Verify the unified stable release and current Sileo source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view v0.2.6 --repo "$GITHUB_REPOSITORY" --json assets,isDraft,isPrerelease \
+            --jq '.assets[].name' | tee assets.txt
+          grep -Fxq DuoBar_0.2.6_RootHide.deb assets.txt
+          grep -Fxq DuoBar_0.2.6_Rootless.deb assets.txt
+          gh release view v0.2.6 --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease \
+            --jq '(.isDraft|not) and (.isPrerelease|not)' | grep -Fxq true
+          curl -fsSL --retry 3 --max-time 25 https://rbx9.github.io/package-sources.txt -o current-manifest.txt
+          grep -Fq '/releases/download/v0.2.6/DuoBar_0.2.6_RootHide.deb' current-manifest.txt
+          grep -Fq '/releases/download/v0.2.6/DuoBar_0.2.6_Rootless.deb' current-manifest.txt
+          if grep -E 'releases/download/.*(beta|rootless\.1)' current-manifest.txt; then
+            echo 'Sileo still uses prerelease files; refusing cleanup' >&2
+            exit 1
+          fi
+          echo 'Stable release and deployed Sileo source confirmed.'
+      - name: Delete only obsolete prerelease entries and their tags
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            --jq '.[] | select(.prerelease == true) | .tag_name' > prerelease-tags.txt
+          echo 'Prereleases to remove:'
+          cat prerelease-tags.txt
+          while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            case "$tag" in
+              *beta*|*-rootless.*) ;;
+              *) echo "Unexpected prerelease tag: $tag" >&2; exit 1 ;;
+            esac
+            echo "Removing prerelease $tag"
+            gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes
+          done < prerelease-tags.txt
+          remaining="$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            --jq '[.[] | select(.prerelease == true)] | length' | awk '{sum+=$1} END {print sum+0}')"
+          test "$remaining" -eq 0
+          gh release view v0.2.6 --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq '.assets[].name' | grep -Fxq DuoBar_0.2.6_Rootless.deb
+          echo 'All public prereleases removed; stable downloads preserved.'
