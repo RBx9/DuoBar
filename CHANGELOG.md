@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.7 beta 1 — Telegram channel in Settings
+
+- Added **Telegram Channel: @RBx9_Repo** in Settings → DuoBar → Links & Updates.
+- Opens the developer's official channel at https://t.me/RBx9_Repo.
+- Kept the existing links, feedback options, transparent icon, size slider, hotspot and Control Center behavior unchanged.
+- RootHide and Rootless test builds; public Sileo stays on 0.2.6 pending device verification.
+
 ## 0.2.6 — Separate Rootless build
 
 - Updated the standard Rootless package to the same v0.2.6 code used by RootHide, including transparent Settings icons, bug-report and iOS-testing email shortcuts, hotspot support, Control Center fixes and size control.

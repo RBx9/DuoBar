@@ -39,6 +39,7 @@ No compiling is needed. The RootHide package uses `iphoneos-arm64e`; standard Ro
 - **v0.2.5 RootHide:** Personal Hotspot chain-link inside DuoBar, reliable Control Center rotation-lock spacing and no brief native-icon flash during transitions.
 - A clean transparent Settings icon and organized preference page with direct **RBx9 Repo** and **Sileo source** links.
 - **Report a Bug** and **Help Test Other iOS Versions** email actions in Settings; bug reports suggest attaching a screenshot or short video.
+- Official [RBx9 Telegram channel](https://t.me/RBx9_Repo) in **Settings → DuoBar → Links & Updates** (v0.2.7 beta).
 - v0.2.2 fixes PreferenceLoader icon discovery by including icon sizes in the actual preferences bundle.
 
 ## Manual installation
