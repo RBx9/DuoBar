@@ -1,11 +1,10 @@
 # Changelog
 
-## 0.2.6 development — Transparent Settings icon and optional support
+## 0.2.6 beta 1 — Settings icon cleanup
 
-- Remove the opaque white corner background behind the rounded DuoBar icon in the Settings list and preferences bundle.
-- Add a clearly optional Support Development section in Settings, keeping DuoBar free.
-- Show the PayPal support button only after the developer supplies their verified PayPal.Me address.
-- This is a development change only; v0.2.5 stable and the Sileo source remain unchanged.
+- Remove the white square backing from the rounded DuoBar icon in the Settings list.
+- Keep the same blue DuoBar artwork and use transparent corner pixels at each display scale.
+- RootHide test build; v0.2.5 stable remains available in Sileo.
 
 ## 0.2.5 — Personal Hotspot and Control Center fixes (RootHide stable)
 

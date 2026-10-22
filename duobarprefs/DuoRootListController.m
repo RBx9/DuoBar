@@ -11,9 +11,8 @@ static CFStringRef const DuoPreferencesNotification = CFSTR("local.duobar/prefer
 static NSString *const DuoRepoURL = @"https://rbx9.github.io/";
 static NSString *const DuoSourceURL = @"sileo://source/https://rbx9.github.io/";
 static NSString *const DuoGitHubURL = @"https://github.com/RBx9/DuoBar";
-// Set this to the developer\'s verified https://paypal.me/<username> URL before release.
-// An empty value hides the button rather than sending donations to an unknown account.
-static NSString *const DuoPayPalURL = @"";
+// Developer-provided PayPal payment page for optional donations.
+static NSString *const DuoPayPalURL = @"https://www.paypal.com/ncp/payment/7733S7H9UF8U6";
 
 @interface DuoRootListController ()
 @property(nonatomic, strong) PSSpecifier *duoSizeSlider;
@@ -132,14 +131,9 @@ static NSString *const DuoPayPalURL = @"";
                       forKey:@"footerText"];
         [items addObject:support];
 
-        // Only expose the donation action once the developer supplies their
-        // own PayPal.Me link. Do not direct users to a generic PayPal page.
-        if ([DuoPayPalURL hasPrefix:@"https://paypal.me/"] &&
-            DuoPayPalURL.length > [@"https://paypal.me/" length]) {
-            [items addObject:[self linkNamed:@"Support via PayPal"
-                                           URL:DuoPayPalURL
-                                        action:@selector(openLink:)]];
-        }
+        [items addObject:[self linkNamed:@"Support via PayPal"
+                                       URL:DuoPayPalURL
+                                    action:@selector(openLink:)]];
 
         PSSpecifier *links = [PSSpecifier groupSpecifierWithName:@"Links & Updates"];
         [links setProperty:@"RBx9 Repo: https://rbx9.github.io/\nUse the same Sileo source for DuoBar updates and future RBx9 tweaks."
