@@ -1,0 +1,96 @@
+name: One-time legacy release cleanup
+
+on:
+  push:
+    branches:
+      - maintenance/cleanup-legacy-releases-20261022
+    paths:
+      - .github/workflows/cleanup-legacy-releases.yml
+
+permissions:
+  contents: write
+
+jobs:
+  prune-old-releases:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release inventory and current Sileo packages
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          # Safety: operate only on the intended repository.
+          test "$GITHUB_REPOSITORY" = "RBx9/DuoBar"
+
+          # Keep the newest published stable and the specific iOS 26 prerelease.
+          test "$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq '.tag_name')" = "v2.7.1"
+          gh release view v2.7.1 --repo "$GITHUB_REPOSITORY" >/dev/null
+          gh release view v0.2.8-ios26-beta.1 --repo "$GITHUB_REPOSITORY" >/dev/null
+
+          cat > expected.txt <<'TAGS'
+          v0.2.0
+          v0.2.1
+          v0.2.2
+          v0.2.3
+          v0.2.5
+          v0.2.6
+          v0.2.7
+          v0.2.8-ios26-beta.1
+          v2.7.1
+          TAGS
+          sort -o expected.txt expected.txt
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq '.[].tag_name' | sort > actual.txt
+          if ! diff -u expected.txt actual.txt; then
+            echo "Release inventory changed. Refusing to delete any releases."
+            exit 1
+          fi
+
+          # Sileo currently points exclusively to the v2.7.1 installers.
+          curl --fail --silent --show-error --location \
+            https://raw.githubusercontent.com/RBx9/RBx9.github.io/main/package-sources.txt \
+            --output package-sources.txt
+          grep -Fq 'releases/download/v2.7.1/DuoBar_2.7.1_RootHide.deb' package-sources.txt
+          grep -Fq 'releases/download/v2.7.1/DuoBar_2.7.1_Rootless.deb' package-sources.txt
+          if grep -E 'releases/download/' package-sources.txt | grep -v 'releases/download/v2.7.1/'; then
+            echo "Sileo references another release. Aborting."
+            exit 1
+          fi
+          echo "Verified both releases to preserve and all seven safe-to-remove versions."
+
+      - name: Delete seven superseded GitHub releases (preserve Git tags)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for tag in \
+            v0.2.0 \
+            v0.2.1 \
+            v0.2.2 \
+            v0.2.3 \
+            v0.2.5 \
+            v0.2.6 \
+            v0.2.7
+          do
+            echo "Deleting legacy release $tag (keeping the historical Git tag)"
+            gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --yes
+          done
+
+      - name: Verify only two intended releases remain
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' v0.2.8-ios26-beta.1 v2.7.1 | sort > expected-remain.txt
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq '.[].tag_name' | sort > remaining.txt
+          diff -u expected-remain.txt remaining.txt
+          gh release view v2.7.1 --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq '.assets[].name' | grep -Fx 'DuoBar_2.7.1_RootHide.deb'
+          gh release view v2.7.1 --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq '.assets[].name' | grep -Fx 'DuoBar_2.7.1_Rootless.deb'
+          gh release view v0.2.8-ios26-beta.1 --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq '.assets[].name' | grep -Fx 'DuoBar_0.2.8-iOS26-Rootless-Beta1.deb'
+          echo "Release cleanup successful: only v2.7.1 and the iOS 26 prerelease remain."
