@@ -2,7 +2,7 @@
 
 An iPhone Duo-inspired status bar for **iOS 16 with Dopamine RootHide or standard Rootless**. DuoBar brings battery percentage, Wi-Fi strength, and cellular signal together in one circular icon. **Both editions have received on-device testing, including community testing of the Rootless edition.**
 
-Developed by **RBx9** · [Twitter / X: @RedaBuali](https://twitter.com/RedaBuali)
+Developed by **RBx9** · [Twitter / X: @rmbx09](https://x.com/rmbx09)
 
 ![DuoBar demonstration showing the circular battery ring, percentage, central Wi-Fi symbol, and four cellular dots](docs/demo.png)
 
