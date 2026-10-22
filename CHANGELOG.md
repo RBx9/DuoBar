@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.6 development — Transparent Settings icon and optional support
+
+- Remove the opaque white corner background behind the rounded DuoBar icon in the Settings list and preferences bundle.
+- Add a clearly optional Support Development section in Settings, keeping DuoBar free.
+- Show the PayPal support button only after the developer supplies their verified PayPal.Me address.
+- This is a development change only; v0.2.5 stable and the Sileo source remain unchanged.
+
 ## 0.2.5 — Personal Hotspot and Control Center fixes (RootHide stable)
 
 - Display the iOS Personal Hotspot chain-link symbol inside the DuoBar circle rather than next to the status-bar indicators.
