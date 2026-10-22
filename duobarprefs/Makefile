@@ -9,6 +9,6 @@ DuoBarPrefs_FILES = DuoRootListController.m
 DuoBarPrefs_FRAMEWORKS = UIKit CoreFoundation QuartzCore
 DuoBarPrefs_PRIVATE_FRAMEWORKS = Preferences
 DuoBarPrefs_INSTALL_PATH = /Library/PreferenceBundles
-DuoBarPrefs_CFLAGS = -fobjc-arc -Wall -Wextra
+DuoBarPrefs_CFLAGS = -fobjc-arc -Wall -Wextra -DDUO_IOS26_EXPERIMENTAL=1
 
 include $(THEOS_MAKE_PATH)/bundle.mk

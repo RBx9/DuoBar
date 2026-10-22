@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.8 iOS 26 Beta 1 — Experimental Rootless compatibility
+
+- Added a separate Rootless package for eligible iOS 26.0–26.0.1 Dopamine devices.
+- Adapted the startup guard to iOS 26 and log private UIKit status-bar compatibility results.
+- Avoid activating status-bar hooks when required battery, Wi-Fi or cellular APIs differ on the device, leaving native icons visible.
+- Keep the existing rendering and preference features unchanged for the first compatibility test.
+- Not a stable iOS 26 release; real-device verification is essential.
+
 ## 0.2.7 — Improvements
 
 - Improved the overall settings experience and update links.
