@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.7 — Improvements
+
+- Improved the overall settings experience and update links.
+- Preserved DuoBar's existing appearance, hotspot behavior, size adjustment and Control Center fixes.
+- Built and verified separate RootHide and Rootless installers for iOS 16.
+
 ## 0.2.6 — Separate Rootless build
 
 - Updated the standard Rootless package to the same v0.2.6 code used by RootHide, including transparent Settings icons, bug-report and iOS-testing email shortcuts, hotspot support, Control Center fixes and size control.

@@ -11,6 +11,7 @@ static CFStringRef const DuoPreferencesNotification = CFSTR("local.duobar/prefer
 static NSString *const DuoRepoURL = @"https://rbx9.github.io/";
 static NSString *const DuoSourceURL = @"sileo://source/https://rbx9.github.io/";
 static NSString *const DuoGitHubURL = @"https://github.com/RBx9/DuoBar";
+static NSString *const DuoTelegramURL = @"https://t.me/RBx9_Repo";
 static NSString *const DuoFeedbackEmail = @"Rmbx998@gmail.com";
 // Developer-provided PayPal payment page for optional donations.
 static NSString *const DuoPayPalURL = @"https://www.paypal.com/ncp/payment/7733S7H9UF8U6";
@@ -152,7 +153,7 @@ static NSString *const DuoPayPalURL = @"https://www.paypal.com/ncp/payment/7733S
                                     action:@selector(openLink:)]];
 
         PSSpecifier *links = [PSSpecifier groupSpecifierWithName:@"Links & Updates"];
-        [links setProperty:@"RBx9 Repo: https://rbx9.github.io/\nUse the same Sileo source for DuoBar updates and future RBx9 tweaks."
+        [links setProperty:@"RBx9 Repo: https://rbx9.github.io/\nUse this Sileo source for DuoBar updates and future RBx9 tweaks. Join our Telegram channel for announcements."
                     forKey:@"footerText"];
         [items addObject:links];
 
@@ -166,6 +167,10 @@ static NSString *const DuoPayPalURL = @"https://www.paypal.com/ncp/payment/7733S
 
         [items addObject:[self linkNamed:@"DuoBar on GitHub"
                                        URL:DuoGitHubURL
+                                    action:@selector(openLink:)]];
+
+        [items addObject:[self linkNamed:@"Telegram Channel: @RBx9_Repo"
+                                       URL:DuoTelegramURL
                                     action:@selector(openLink:)]];
 
         NSString *twitterTitle = [NSString stringWithFormat:@"Twitter / X: @%@", DUO_TWITTER_USERNAME];

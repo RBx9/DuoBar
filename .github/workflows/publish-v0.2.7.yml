@@ -1,0 +1,142 @@
+name: Publish DuoBar v0.2.7 RootHide + Rootless
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-v0.2.7.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.scheme }} 0.2.7
+    runs-on: macos-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        scheme: [roothide, rootless]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build prerequisites
+        run: brew install make ldid dpkg gnu-tar xz rsync
+      - name: Configure Theos
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Fetch compiler and SDK
+        env:
+          SCHEME: ${{ matrix.scheme }}
+        run: |
+          if [ "$SCHEME" = roothide ]; then
+            git clone --recursive --depth 1 https://github.com/roothide/theos.git "$THEOS"
+          else
+            git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
+          fi
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+      - name: Compile stable package and inspect layout
+        shell: bash
+        env:
+          SCHEME: ${{ matrix.scheme }}
+        run: |
+          set -euo pipefail
+          if [ "$SCHEME" = rootless ]; then
+            cp packaging/control.rootless control
+            export ARCHS=arm64
+            expected_package=local.duobar.rootless
+            expected_arch=iphoneos-arm64
+            prefix=var/jb/
+            name=Rootless
+          else
+            expected_package=local.duobar
+            expected_arch=iphoneos-arm64e
+            prefix=
+            name=RootHide
+          fi
+          grep -Fq 'DUO_VERSION @"0.2.7"' Shared/DuoMetadata.h
+          if grep -Eiq 'telegram|paypal|donat' docs/RELEASE-v0.2.7.md; then
+            echo 'What\x27s New must only mention improvements' >&2
+            exit 1
+          fi
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME="$SCHEME" TARGET=iphone:clang:16.5:16.0
+          files=(packages/*.deb)
+          test "${#files[@]}" -eq 1
+          deb="${files[0]}"
+          test "$(dpkg-deb -f "$deb" Package)" = "$expected_package"
+          test "$(dpkg-deb -f "$deb" Version)" = "0.2.7"
+          test "$(dpkg-deb -f "$deb" Architecture)" = "$expected_arch"
+          dpkg-deb --contents "$deb" | tee contents.txt
+          grep -Fq "${prefix}Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib" contents.txt
+          grep -Fq "${prefix}Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarIcon.png" contents.txt
+          grep -Fq "${prefix}Library/PreferenceLoader/Preferences/DuoBar.plist" contents.txt
+          dpkg-deb --extract "$deb" extracted
+          PREFIX="$prefix" python3 - <<'PY'
+          import os,plistlib
+          from pathlib import Path
+          root=Path("extracted")/os.environ.get("PREFIX","")/"Library"
+          bundle=root/"PreferenceBundles/DuoBarPrefs.bundle"
+          spec=root/"PreferenceLoader/Preferences/DuoBar.plist"
+          info=plistlib.loads((bundle/"Info.plist").read_bytes())
+          assert info["CFBundleShortVersionString"]=="0.2.7"
+          assert plistlib.loads(spec.read_bytes())["entry"]["icon"]=="DuoBar.png"
+          assert (bundle/"DuoBarIcon.png").is_file()
+          for file in (bundle/"DuoBar.png",bundle/"DuoBar@2x.png",bundle/"DuoBar@3x.png"):
+              b=file.read_bytes()
+              assert b[:8]==bytes.fromhex("89504e470d0a1a0a") and b[25]==6, file
+          print("Validated RootHide/Rootless icon and Settings metadata")
+          PY
+          cp "$deb" "DuoBar_0.2.7_${name}.deb"
+          shasum -a 256 "DuoBar_0.2.7_${name}.deb" > "SHA256SUMS-${name}.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DuoBar-v0.2.7-${{ matrix.scheme }}
+          path: |
+            DuoBar_0.2.7_*.deb
+            SHA256SUMS-*.txt
+          if-no-files-found: error
+
+  publish:
+    name: Publish two stable installers together
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: DuoBar-v0.2.7-*
+          path: dist
+          merge-multiple: true
+      - name: Verify and publish unified GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd dist
+          test -s DuoBar_0.2.7_RootHide.deb
+          test -s DuoBar_0.2.7_Rootless.deb
+          sha256sum --check SHA256SUMS-RootHide.txt
+          sha256sum --check SHA256SUMS-Rootless.txt
+          test "$(dpkg-deb -f DuoBar_0.2.7_RootHide.deb Package)" = local.duobar
+          test "$(dpkg-deb -f DuoBar_0.2.7_RootHide.deb Version)" = 0.2.7
+          test "$(dpkg-deb -f DuoBar_0.2.7_RootHide.deb Architecture)" = iphoneos-arm64e
+          test "$(dpkg-deb -f DuoBar_0.2.7_Rootless.deb Package)" = local.duobar.rootless
+          test "$(dpkg-deb -f DuoBar_0.2.7_Rootless.deb Version)" = 0.2.7
+          test "$(dpkg-deb -f DuoBar_0.2.7_Rootless.deb Architecture)" = iphoneos-arm64
+          if gh release view v0.2.7 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'Stable v0.2.7 release already exists; refusing overwrite' >&2
+            exit 1
+          fi
+          gh release create v0.2.7 \
+            DuoBar_0.2.7_RootHide.deb DuoBar_0.2.7_Rootless.deb \
+            SHA256SUMS-RootHide.txt SHA256SUMS-Rootless.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "DuoBar v0.2.7 — RootHide + Rootless" \
+            --notes-file ../docs/RELEASE-v0.2.7.md --latest
