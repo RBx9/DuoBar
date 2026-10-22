@@ -174,7 +174,7 @@ static NSString *const DuoPayPalURL = @"https://www.paypal.com/ncp/payment/7733S
                                     action:@selector(openLink:)]];
 
         NSString *twitterTitle = [NSString stringWithFormat:@"Twitter / X: @%@", DUO_TWITTER_USERNAME];
-        NSString *twitterURL = [@"https://twitter.com/" stringByAppendingString:DUO_TWITTER_USERNAME];
+        NSString *twitterURL = [@"https://x.com/" stringByAppendingString:DUO_TWITTER_USERNAME];
         [items addObject:[self linkNamed:twitterTitle
                                        URL:twitterURL
                                     action:@selector(openLink:)]];
