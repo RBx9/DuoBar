@@ -1,6 +1,6 @@
 # DuoBar
 
-An iPhone Duo-inspired status bar for **iOS 16 with Dopamine RootHide or standard Rootless**. DuoBar brings battery percentage, Wi-Fi strength, and cellular signal together in one circular icon.
+An iPhone Duo-inspired status bar for **iOS 16 with Dopamine RootHide or standard Rootless**. DuoBar brings battery percentage, Wi-Fi strength, and cellular signal together in one circular icon. **Both editions have received on-device testing, including community testing of the Rootless edition.**
 
 Developed by **RBx9** · [Twitter / X: @RedaBuali](https://twitter.com/RedaBuali)
 
@@ -23,7 +23,7 @@ The **RBx9 Repo** hosts two distinct iOS 16 packages: **DuoBar (RootHide)** for 
 
 [**Unified v2.7.1 Release (RootHide and Rootless)**](https://github.com/RBx9/DuoBar/releases/tag/v2.7.1) · [Previous stable v0.2.6](https://github.com/RBx9/DuoBar/releases/tag/v0.2.6)
 
-**Standard Rootless edition:** [DuoBar v2.7.1 Rootless .deb](https://github.com/RBx9/DuoBar/releases/download/v2.7.1/DuoBar_2.7.1_Rootless.deb) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. The package passed build verification but still needs an on-device Rootless test.
+**Standard Rootless edition:** [DuoBar v2.7.1 Rootless .deb](https://github.com/RBx9/DuoBar/releases/download/v2.7.1/DuoBar_2.7.1_Rootless.deb) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. The package passed build verification and has also been tested by community members on Rootless iPhones. Individual devices and iOS 16 configurations may behave differently.
 
 No compiling is needed. The RootHide package uses `iphoneos-arm64e`; standard Rootless uses `iphoneos-arm64`.
 
@@ -53,9 +53,9 @@ Existing DuoBar installations can be upgraded with the same package. See the [in
 
 ## Compatibility
 
-The supplied download targets **iOS 16.x and Dopamine RootHide**, with tweak injection and PreferenceLoader. PreferenceLoader is declared as a package dependency. This download is not a standard Dopamine/rootless package.
+The **RootHide installer** targets iOS 16.x with Dopamine RootHide (`iphoneos-arm64e`). The separate **Rootless installer** targets iOS 16.x with standard Dopamine Rootless (`iphoneos-arm64`). Both require tweak injection and PreferenceLoader. Choose the edition matching your jailbreak.
 
-This v2.7.1 release changes the version numbering and retains the existing v0.2.7 indicator and Settings features for both editions. Both installers passed automated build checks; on-device confirmation for standard Rootless is still needed. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
+This v2.7.1 release changes the version numbering and retains the existing v0.2.7 indicator and Settings features for both editions. Both installers passed automated build checks, and **users have now tested the Rootless edition on actual devices**. Specific iPhone models, iOS 16 builds and jailbreak setups may still need additional testing. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
 
 ## Build from source
 
