@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.6 — Settings icon and feedback
+
+- Removed the white square around DuoBar's Settings icon using transparent PNG corners at all display sizes.
+- Added an optional bug-report email draft with iOS/DuoBar version fields and a reminder to attach screenshots or screen recordings.
+- Added an invitation for volunteers to help test compatibility with other iOS versions.
+- Kept the working Personal Hotspot, Control Center rotation-lock, smooth transitions, and size-slider features unchanged.
+- RootHide stable release approved after testing v0.2.6 Beta 2.
+
 ## 0.2.6 beta 2 — Bug reports and iOS testing
 
 - Added a Report a Bug button that prepares a structured email with the current DuoBar and iOS versions.
