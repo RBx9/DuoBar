@@ -1,0 +1,30 @@
+name: Remove Superseded DuoBar Beta 1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cleanup-v027-prerelease.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  remove-old-beta:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify v0.2.7 stable and remove only its old beta
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_REPOSITORY"
+          stable=$(gh release view v0.2.7 --repo "$repo" --json isPrerelease --jq '.isPrerelease')
+          test "$stable" = false
+          asset_count=$(gh release view v0.2.7 --repo "$repo" --json assets --jq '.assets | length')
+          test "$asset_count" -ge 2
+          beta=$(gh release view v0.2.7-beta.1 --repo "$repo" --json isPrerelease --jq '.isPrerelease')
+          test "$beta" = true
+          gh release delete v0.2.7-beta.1 --repo "$repo" --yes --cleanup-tag
+          echo "Removed v0.2.7-beta.1 and tag; v0.2.7 stable remains unchanged."
