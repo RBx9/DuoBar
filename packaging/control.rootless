@@ -1,6 +1,6 @@
 Package: local.duobar.rootless
 Name: DuoBar (Rootless)
-Version: 0.2.7~beta1
+Version: 0.2.7
 Architecture: iphoneos-arm64
 Description: DuoBar circular battery, Wi-Fi and cellular indicator for iOS 16 Rootless.
  Includes a live adjustable 70%-140% size slider, Settings integration,

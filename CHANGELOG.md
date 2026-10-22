@@ -1,11 +1,10 @@
 # Changelog
 
-## 0.2.7 beta 1 — Telegram channel in Settings
+## 0.2.7 — Improvements
 
-- Added **Telegram Channel: @RBx9_Repo** in Settings → DuoBar → Links & Updates.
-- Opens the developer's official channel at https://t.me/RBx9_Repo.
-- Kept the existing links, feedback options, transparent icon, size slider, hotspot and Control Center behavior unchanged.
-- RootHide and Rootless test builds; public Sileo stays on 0.2.6 pending device verification.
+- Improved the overall settings experience and update links.
+- Preserved DuoBar's existing appearance, hotspot behavior, size adjustment and Control Center fixes.
+- Built and verified separate RootHide and Rootless installers for iOS 16.
 
 ## 0.2.6 — Separate Rootless build
 

@@ -19,11 +19,11 @@ The **RBx9 Repo** hosts two distinct iOS 16 packages: **DuoBar (RootHide)** for 
 
 ## Download .deb manually
 
-[**Download DuoBar v0.2.6 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v0.2.6/DuoBar_0.2.6_RootHide.deb)
+[**Download DuoBar v0.2.7 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v0.2.7/DuoBar_0.2.7_RootHide.deb)
 
-[**Unified v0.2.6 Release (RootHide and Rootless)**](https://github.com/RBx9/DuoBar/releases/tag/v0.2.6) · [Previous stable v0.2.5](https://github.com/RBx9/DuoBar/releases/tag/v0.2.5)
+[**Unified v0.2.7 Release (RootHide and Rootless)**](https://github.com/RBx9/DuoBar/releases/tag/v0.2.7) · [Previous stable v0.2.6](https://github.com/RBx9/DuoBar/releases/tag/v0.2.6)
 
-**Standard Rootless edition:** [DuoBar v0.2.6 Rootless .deb](https://github.com/RBx9/DuoBar/releases/download/v0.2.6/DuoBar_0.2.6_Rootless.deb) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. The package passed build verification but still needs an on-device Rootless test.
+**Standard Rootless edition:** [DuoBar v0.2.7 Rootless .deb](https://github.com/RBx9/DuoBar/releases/download/v0.2.7/DuoBar_0.2.7_Rootless.deb) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. The package passed build verification but still needs an on-device Rootless test.
 
 No compiling is needed. The RootHide package uses `iphoneos-arm64e`; standard Rootless uses `iphoneos-arm64`.
 
@@ -39,7 +39,7 @@ No compiling is needed. The RootHide package uses `iphoneos-arm64e`; standard Ro
 - **v0.2.5 RootHide:** Personal Hotspot chain-link inside DuoBar, reliable Control Center rotation-lock spacing and no brief native-icon flash during transitions.
 - A clean transparent Settings icon and organized preference page with direct **RBx9 Repo** and **Sileo source** links.
 - **Report a Bug** and **Help Test Other iOS Versions** email actions in Settings; bug reports suggest attaching a screenshot or short video.
-- Official [RBx9 Telegram channel](https://t.me/RBx9_Repo) in **Settings → DuoBar → Links & Updates** (v0.2.7 beta).
+- Improved links and update options in **Settings → DuoBar → Links & Updates**.
 - v0.2.2 fixes PreferenceLoader icon discovery by including icon sizes in the actual preferences bundle.
 
 ## Manual installation
@@ -55,7 +55,7 @@ Existing DuoBar installations can be upgraded with the same package. See the [in
 
 The supplied download targets **iOS 16.x and Dopamine RootHide**, with tweak injection and PreferenceLoader. PreferenceLoader is declared as a package dependency. This download is not a standard Dopamine/rootless package.
 
-The v0.2.6 RootHide Settings changes were approved following Beta 2 testing. The separate Rootless v0.2.6 package uses the same code and receives its own Rootless build verification; real-device Rootless testing remains outstanding. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
+The v0.2.7 update uses the same indicator and Settings code for both editions. Both installers passed automated build checks; on-device confirmation for standard Rootless is still needed. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
 
 ## Build from source
 
