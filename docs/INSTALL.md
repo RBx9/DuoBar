@@ -9,11 +9,11 @@ The supplied `.deb` is for **iOS 16.x with Dopamine RootHide**. Its package arch
 3. Refresh your sources, find **DuoBar** in RBx9 Repo, and install or upgrade it.
 4. Respring, then reopen Settings and any previously running apps.
 
-You can keep the same RBx9 Repo source for future compatible tweaks and upgrades. This version is for **RootHide**; the separate **Rootless** package is currently v0.2.3.
+You can keep the same RBx9 Repo source for future compatible tweaks and upgrades. This version is for **RootHide**; the separate **Rootless** package is currently v0.2.3 (a newer Rootless build is being prepared).
 
 ## Manual .deb installation or upgrade
 
-1. On your iPhone, [download DuoBar v0.2.5](https://github.com/RBx9/DuoBar/releases/download/v0.2.5/DuoBar_0.2.5_RootHide.deb).
+1. On your iPhone, [download DuoBar v0.2.6](https://github.com/RBx9/DuoBar/releases/download/v0.2.6/DuoBar_0.2.6_RootHide.deb).
 2. Open the downloaded file in your RootHide package manager or RootHide-compatible Filza, then install it.
 3. If an earlier DuoBar version is installed, install this package over it.
 4. Respring when installation finishes.
@@ -33,6 +33,10 @@ The page includes the tweak description, version, developer credit, and links to
 ## Adjust the size
 
 Open **Settings → DuoBar → DuoBar Size**. Drag the slider from **70% to 140%**, in 5% steps, and see the result without respringing. Use **Reset Size to 100%** to restore the original size. Compact status bars can limit large sizes.
+
+## Report an issue or help test another iOS version
+
+In **Settings → DuoBar → Feedback & iOS Testing**, choose **Report a Bug** to compose an editable email with the current DuoBar and iOS versions. Attach a screenshot or screen recording in the email app if possible. Choose **Help Test Other iOS Versions** to volunteer an iPhone model, iOS version, and jailbreak details. Neither option sends an email automatically.
 
 ## Remove DuoBar
 

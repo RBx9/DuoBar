@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.6 — Settings icon and feedback
+
+- Removed the white square around DuoBar's Settings icon using transparent PNG corners at all display sizes.
+- Added an optional bug-report email draft with iOS/DuoBar version fields and a reminder to attach screenshots or screen recordings.
+- Added an invitation for volunteers to help test compatibility with other iOS versions.
+- Kept the working Personal Hotspot, Control Center rotation-lock, smooth transitions, and size-slider features unchanged.
+- RootHide stable release approved after testing v0.2.6 Beta 2.
+
+## 0.2.6 beta 2 — Bug reports and iOS testing
+
+- Added a Report a Bug button that prepares a structured email with the current DuoBar and iOS versions.
+- Suggests attaching an optional screenshot or short recording before sending the report.
+- Added a volunteer-testing email shortcut for users who can help validate additional iOS versions.
+- Preserves the transparent icon fix and existing status-bar behavior.
+- RootHide test release only; public Sileo remains on v0.2.5.
+
+## 0.2.6 beta 1 — Settings icon cleanup
+
+- Remove the white square backing from the rounded DuoBar icon in the Settings list.
+- Keep the same blue DuoBar artwork and use transparent corner pixels at each display scale.
+- RootHide test build; v0.2.5 stable remains available in Sileo.
+
 ## 0.2.5 — Personal Hotspot and Control Center fixes (RootHide stable)
 
 - Display the iOS Personal Hotspot chain-link symbol inside the DuoBar circle rather than next to the status-bar indicators.

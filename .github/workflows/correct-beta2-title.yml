@@ -1,0 +1,23 @@
+name: Correct DuoBar Beta 2 Release Title
+
+on:
+  push:
+    branches: [feature/feedback-and-ios-testers-v0.2.6-beta2]
+    paths: ['.github/workflows/correct-beta2-title.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  set-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Correct existing beta release title only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view v0.2.6-beta.2 --repo "$GITHUB_REPOSITORY" >/dev/null
+          gh release edit v0.2.6-beta.2 \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "DuoBar v0.2.6 Beta 2 — Feedback & iOS Testing"
