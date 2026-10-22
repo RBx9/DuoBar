@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.6 beta 2 — Bug reports and iOS testing
+
+- Added a Report a Bug button that prepares a structured email with the current DuoBar and iOS versions.
+- Suggests attaching an optional screenshot or short recording before sending the report.
+- Added a volunteer-testing email shortcut for users who can help validate additional iOS versions.
+- Preserves the transparent icon fix and existing status-bar behavior.
+- RootHide test release only; public Sileo remains on v0.2.5.
+
 ## 0.2.6 beta 1 — Settings icon cleanup
 
 - Remove the white square backing from the rounded DuoBar icon in the Settings list.

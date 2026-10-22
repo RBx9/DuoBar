@@ -11,6 +11,7 @@ static CFStringRef const DuoPreferencesNotification = CFSTR("local.duobar/prefer
 static NSString *const DuoRepoURL = @"https://rbx9.github.io/";
 static NSString *const DuoSourceURL = @"sileo://source/https://rbx9.github.io/";
 static NSString *const DuoGitHubURL = @"https://github.com/RBx9/DuoBar";
+static NSString *const DuoFeedbackEmail = @"Rmbx998@gmail.com";
 // Developer-provided PayPal payment page for optional donations.
 static NSString *const DuoPayPalURL = @"https://www.paypal.com/ncp/payment/7733S7H9UF8U6";
 
@@ -126,6 +127,21 @@ static NSString *const DuoPayPalURL = @"https://www.paypal.com/ncp/payment/7733S
             detail:Nil cell:PSTitleValueCell edit:Nil];
         [items addObject:developer];
 
+        PSSpecifier *feedback = [PSSpecifier groupSpecifierWithName:@"Feedback & iOS Testing"];
+        [feedback setProperty:@"Found a bug? Email me the details and, if possible, attach a screenshot or screen recording. If you'd like to help bring DuoBar to other iOS versions, email me your iOS version, iPhone model and jailbreak. Volunteers can help test upcoming builds."
+                         forKey:@"footerText"];
+        [items addObject:feedback];
+
+        PSSpecifier *report = [PSSpecifier preferenceSpecifierNamed:@"Report a Bug"
+            target:self set:NULL get:NULL detail:Nil cell:PSButtonCell edit:Nil];
+        report.buttonAction = @selector(reportBug:);
+        [items addObject:report];
+
+        PSSpecifier *tester = [PSSpecifier preferenceSpecifierNamed:@"Help Test Other iOS Versions"
+            target:self set:NULL get:NULL detail:Nil cell:PSButtonCell edit:Nil];
+        tester.buttonAction = @selector(helpTestOtherIOSVersions:);
+        [items addObject:tester];
+
         PSSpecifier *support = [PSSpecifier groupSpecifierWithName:@"Support Development"];
         [support setProperty:@"DuoBar is completely free, and it will stay that way. If you enjoy using it and would like to support its development, an optional donation helps me spend more time improving DuoBar, releasing updates, and creating new tweaks. Thank you!"
                       forKey:@"footerText"];
@@ -221,6 +237,80 @@ static NSString *const DuoPayPalURL = @"https://www.paypal.com/ncp/payment/7733S
 - (NSString *)versionName:(PSSpecifier *)specifier {
     (void)specifier;
     return DUO_VERSION;
+}
+
+// Compose a local email draft. iOS asks the user to review and send it;
+// DuoBar never transmits information on its own.
+- (void)composeFeedbackEmailWithSubject:(NSString *)subject body:(NSString *)body {
+    NSURLComponents *components = [[NSURLComponents alloc] init];
+    components.scheme = @"mailto";
+    components.path = DuoFeedbackEmail;
+    components.queryItems = @[
+        [NSURLQueryItem queryItemWithName:@"subject" value:subject],
+        [NSURLQueryItem queryItemWithName:@"body" value:body]
+    ];
+    NSURL *url = components.URL;
+    if (url && [UIApplication.sharedApplication canOpenURL:url]) {
+        [UIApplication.sharedApplication openURL:url options:@{} completionHandler:nil];
+        return;
+    }
+    // If no email app handles mailto:, offer an easy way to use the address.
+    UIAlertController *alert = [UIAlertController
+        alertControllerWithTitle:@"Email App Not Available"
+                        message:@"No email app is configured to open this draft. You can copy the developer's email address and write from your preferred mail app."
+                 preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Copy Email Address"
+        style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *action) {
+            UIPasteboard.generalPasteboard.string = DuoFeedbackEmail;
+        }]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel"
+        style:UIAlertActionStyleCancel handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)reportBug:(PSSpecifier *)specifier {
+    (void)specifier;
+    UIAlertController *prompt = [UIAlertController
+        alertControllerWithTitle:@"Include a Screenshot?"
+                        message:@"For faster bug fixes, please attach a screenshot or short screen recording showing the problem, if possible. You'll be able to attach it in your email app before sending."
+                 preferredStyle:UIAlertControllerStyleAlert];
+    [prompt addAction:[UIAlertAction actionWithTitle:@"Compose Email"
+        style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *action) {
+            NSString *subject = [NSString stringWithFormat:@"DuoBar Bug Report — v%@", DUO_VERSION];
+            NSString *body = [NSString stringWithFormat:
+                @"Hi RBx9,\n\n"
+                 @"I found an issue with DuoBar.\n\n"
+                 @"DuoBar version: %@\n"
+                 @"iOS version: %@\n"
+                 @"iPhone model: [Please enter model]\n"
+                 @"Jailbreak: [RootHide / Rootless / Other]\n\n"
+                 @"What happened?\n\n"
+                 @"Steps to reproduce:\n1. \n2. \n3. \n\n"
+                 @"Expected behavior:\n\n"
+                 @"Actual behavior:\n\n"
+                 @"Screenshot or short video: Please attach one if possible.\n",
+                 DUO_VERSION, UIDevice.currentDevice.systemVersion];
+            // The user attaches images manually in the email compose screen.
+            [self composeFeedbackEmailWithSubject:subject body:body];
+        }]];
+    [prompt addAction:[UIAlertAction actionWithTitle:@"Cancel"
+        style:UIAlertActionStyleCancel handler:nil]];
+    [self presentViewController:prompt animated:YES completion:nil];
+}
+
+- (void)helpTestOtherIOSVersions:(PSSpecifier *)specifier {
+    (void)specifier;
+    NSString *subject = @"DuoBar — Help Test Other iOS Versions";
+    NSString *body = [NSString stringWithFormat:
+        @"Hi RBx9,\n\n"
+         @"I'd like to help test DuoBar on another iOS version so it can be updated to work on more devices.\n\n"
+         @"My iOS version: %@\n"
+         @"My iPhone model: [Please enter model]\n"
+         @"My jailbreak: [Please enter jailbreak and RootHide / Rootless]\n"
+         @"I can help test beta builds and report any problems.\n\n"
+         @"Additional details:\n",
+         UIDevice.currentDevice.systemVersion];
+    [self composeFeedbackEmailWithSubject:subject body:body];
 }
 
 - (void)openLink:(PSSpecifier *)specifier {
