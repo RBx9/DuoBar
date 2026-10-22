@@ -1,7 +1,7 @@
-# DuoBar v0.2.3 (Rootless) — iOS 16
+# DuoBar v0.2.6 (Rootless) — iOS 16
 
 This is the **standard Rootless/Dopamine** build of DuoBar, using the same
-v0.2.3 drawing engine and settings as the RootHide edition, but compiled
+v0.2.6 drawing engine and settings as the RootHide edition, but compiled
 for the `iphoneos-arm64` rootless environment.
 
 ## Package separation
@@ -21,8 +21,14 @@ does not prove that the tweak actually displays or resizes correctly.
 To test: install from Sileo on a Rootless jailbroken device, respring, then
 check that the glyph is visible, Control Center does not duplicate the battery
 percentage, rotation lock doesn't overlap, and Settings → DuoBar shows the
-size slider and icon. Try both 70% and 140%; ensure the off switch restores
-native icons.
+size slider, transparent blue icon, bug-report email and iOS testing links.
+Test Personal Hotspot connecting/disconnecting, transitions, rotation lock,
+and size values of 70%, 100% and 140%. Ensure the off switch restores native
+icons. Report bugs with screenshots if possible.
+
+The RootHide v0.2.6 build was tested on-device, but the standard Rootless
+edition still has no independent on-device confirmation. Automated compilation
+and package verification cannot guarantee iOS private status-bar compatibility.
 
 If a conflict, missing UI, or SpringBoard crash occurs, remove the package via
 your package manager or jailbreak safe mode. The known working RootHide package
