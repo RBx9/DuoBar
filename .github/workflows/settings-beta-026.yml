@@ -1,0 +1,83 @@
+name: Verify DuoBar v0.2.6 Settings Beta
+
+on:
+  push:
+    branches: [feature/settings-icon-and-support-v0.2.6]
+    paths: ['.github/workflows/settings-beta-026.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  beta:
+    name: RootHide Settings beta
+    runs-on: macos-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: brew install make ldid dpkg gnu-tar xz rsync
+      - name: Configure Theos
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Fetch RootHide Theos and iOS SDK
+        run: |
+          git clone --recursive --depth 1 https://github.com/roothide/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+      - name: Build and verify RootHide beta and icon transparency
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'https://www.paypal.com/ncp/payment/7733S7H9UF8U6' duobarprefs/DuoRootListController.m
+          if grep -Eiq 'support|paypal|donat' docs/TEST-v0.2.6-beta1.md; then
+            echo "Public release notes unexpectedly mention the optional payment link" >&2
+            exit 1
+          fi
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide TARGET=iphone:clang:16.5:16.0
+          files=(packages/*.deb)
+          test "${#files[@]}" -eq 1
+          deb="${files[0]}"
+          test "$(dpkg-deb -f "$deb" Package)" = "local.duobar"
+          test "$(dpkg-deb -f "$deb" Version)" = "0.2.6~beta1"
+          test "$(dpkg-deb -f "$deb" Architecture)" = "iphoneos-arm64e"
+          dpkg-deb --extract "$deb" extracted
+          python3 - <<'PY'
+          from pathlib import Path
+          import plistlib
+          pref=Path('extracted/Library/PreferenceLoader/Preferences')
+          bundle=Path('extracted/Library/PreferenceBundles/DuoBarPrefs.bundle')
+          files=[pref/n for n in ('DuoBar.png','DuoBar@2x.png','DuoBar@3x.png')]
+          files += [bundle/n for n in ('DuoBar.png','DuoBar@2x.png','DuoBar@3x.png','DuoBarIcon.png')]
+          for file in files:
+              data=file.read_bytes()
+              assert data[:8] == bytes.fromhex('89504e470d0a1a0a'), file
+              assert data[25] == 6, f'{file} does not contain an RGBA PNG'
+              print('RGBA icon:',file)
+          entry=plistlib.loads((pref/'DuoBar.plist').read_bytes())
+          assert entry['entry']['icon'] == 'DuoBar.png'
+          info=plistlib.loads((bundle/'Info.plist').read_bytes())
+          assert info['CFBundleShortVersionString'] == '0.2.6'
+          print('PreferenceLoader icon paths and bundle version verified')
+          PY
+          cp "$deb" DuoBar_0.2.6-beta1_RootHide.deb
+          shasum -a 256 DuoBar_0.2.6-beta1_RootHide.deb > SHA256SUMS.txt
+      - name: Publish GitHub test prerelease only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view v0.2.6-beta.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'Beta tag already exists; not replacing test assets' >&2
+            exit 1
+          fi
+          gh release create v0.2.6-beta.1 \
+            DuoBar_0.2.6-beta1_RootHide.deb SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "DuoBar v0.2.6 Beta 1 — Settings Icon Polish" \
+            --notes-file docs/TEST-v0.2.6-beta1.md --prerelease

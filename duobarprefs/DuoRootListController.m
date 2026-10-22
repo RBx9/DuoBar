@@ -11,6 +11,8 @@ static CFStringRef const DuoPreferencesNotification = CFSTR("local.duobar/prefer
 static NSString *const DuoRepoURL = @"https://rbx9.github.io/";
 static NSString *const DuoSourceURL = @"sileo://source/https://rbx9.github.io/";
 static NSString *const DuoGitHubURL = @"https://github.com/RBx9/DuoBar";
+// Developer-provided PayPal payment page for optional donations.
+static NSString *const DuoPayPalURL = @"https://www.paypal.com/ncp/payment/7733S7H9UF8U6";
 
 @interface DuoRootListController ()
 @property(nonatomic, strong) PSSpecifier *duoSizeSlider;
@@ -123,6 +125,15 @@ static NSString *const DuoGitHubURL = @"https://github.com/RBx9/DuoBar";
             target:self set:NULL get:@selector(developerName:)
             detail:Nil cell:PSTitleValueCell edit:Nil];
         [items addObject:developer];
+
+        PSSpecifier *support = [PSSpecifier groupSpecifierWithName:@"Support Development"];
+        [support setProperty:@"DuoBar is completely free, and it will stay that way. If you enjoy using it and would like to support its development, an optional donation helps me spend more time improving DuoBar, releasing updates, and creating new tweaks. Thank you!"
+                      forKey:@"footerText"];
+        [items addObject:support];
+
+        [items addObject:[self linkNamed:@"Support via PayPal"
+                                       URL:DuoPayPalURL
+                                    action:@selector(openLink:)]];
 
         PSSpecifier *links = [PSSpecifier groupSpecifierWithName:@"Links & Updates"];
         [links setProperty:@"RBx9 Repo: https://rbx9.github.io/\nUse the same Sileo source for DuoBar updates and future RBx9 tweaks."
