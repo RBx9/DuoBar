@@ -1,0 +1,83 @@
+name: Build and publish DuoBar carrier beta (Rootless)
+
+on:
+  push:
+    branches:
+      - feature/carrier-5g-lte-v2.7.2-beta1
+    paths:
+      - 'Sources/**'
+      - 'Shared/**'
+      - 'duobarprefs/**'
+      - 'Makefile'
+      - 'packaging/control.rootless'
+      - '.github/workflows/release-carrier-beta-rootless.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build and publish Rootless beta package
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build prerequisites
+        run: brew install make ldid dpkg gnu-tar xz rsync
+
+      - name: Configure Theos
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+
+      - name: Fetch standard Theos and iOS SDK
+        run: |
+          git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+
+      - name: Build and verify the Rootless package
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'DUO_VERSION @"2.7.2-beta.3"' Shared/DuoMetadata.h
+          cp packaging/control.rootless control
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS=arm64 TARGET=iphone:clang:16.5:16.0
+          files=(packages/*.deb)
+          test "${#files[@]}" -eq 1
+          deb="${files[0]}"
+          test "$(dpkg-deb -f "$deb" Package)" = local.duobar.rootless
+          test "$(dpkg-deb -f "$deb" Version)" = '2.7.2~beta3'
+          test "$(dpkg-deb -f "$deb" Architecture)" = iphoneos-arm64
+          dpkg-deb --contents "$deb" | tee contents.txt
+          grep -Fq 'var/jb/Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib' contents.txt
+          grep -Fq 'var/jb/Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarIcon.png' contents.txt
+          grep -Fq 'var/jb/Library/PreferenceLoader/Preferences/DuoBar.plist' contents.txt
+          dpkg-deb --extract "$deb" extracted
+          python3 - <<'PY'
+          import plistlib
+          from pathlib import Path
+          root = Path("extracted/var/jb/Library")
+          bundle = root / "PreferenceBundles/DuoBarPrefs.bundle"
+          spec = root / "PreferenceLoader/Preferences/DuoBar.plist"
+          assert (root / "MobileSubstrate/DynamicLibraries/DuoBar.dylib").is_file()
+          assert (bundle / "DuoBarIcon.png").is_file()
+          assert plistlib.loads(spec.read_bytes())["entry"]["icon"] == "DuoBar.png"
+          print("Validated Rootless install prefix, Settings bundle, and icon")
+          PY
+          cp "$deb" DuoBar_2.7.2-beta3_Rootless.deb
+          shasum -a 256 DuoBar_2.7.2-beta3_Rootless.deb > SHA256SUMS-Rootless.txt
+
+      - name: Upload Rootless package to beta 3 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view v2.7.2-beta.3 --repo "$GITHUB_REPOSITORY" >/dev/null
+          gh release upload v2.7.2-beta.3 \
+            DuoBar_2.7.2-beta3_Rootless.deb SHA256SUMS-Rootless.txt \
+            --repo "$GITHUB_REPOSITORY" --clobber

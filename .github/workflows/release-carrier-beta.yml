@@ -73,18 +73,18 @@ jobs:
         with:
           tag_name: v2.7.2-beta.3
           target_commitish: ${{ github.sha }}
-          name: DuoBar v2.7.2 Beta 3 (RootHide)
+          name: DuoBar v2.7.2 Beta 3 (RootHide + Rootless)
           prerelease: true
           make_latest: false
           overwrite_files: true
           body: |
-            RootHide test build based on the v2.7.1 release.
+            RootHide and standard Rootless community-test builds based on the v2.7.1 release. Choose the package that matches the jailbreak. Do not install both variants.
 
             This beta draws the compact 5G/LTE carrier label inside DuoBar in app status bars and Control Center. It also refreshes and covers status icons synchronously when UIKit rebuilds the status bar during rotation or Control Center transitions, preventing the stock battery from flashing back. The Wi-Fi and Personal Hotspot marks remain in the ring, and the released settings, size slider, battery percentage, cellular dots, and Control Center behavior are retained.
 
-            Install the attached `DuoBar_2.7.2-beta3_RootHide.deb` with a RootHide-compatible package manager and respring. Use `docs/TEST-v2.7.2-beta3.md` for the device checks. Compilation and package contents are verified; live iPhone behavior still needs testing.
+            Install `DuoBar_2.7.2-beta3_RootHide.deb` on Dopamine RootHide, or `DuoBar_2.7.2-beta3_Rootless.deb` on standard Dopamine Rootless, then respring. Do not install both packages. Use `docs/TEST-v2.7.2-beta3.md` for the device checks. Compilation and package contents are verified; live iPhone behavior still needs testing.
 
-            Rootless packaging and the stable/Sileo release are deferred until this RootHide beta is tested.
+            Both packages are prereleases for community testing. The stable/Sileo release remains unchanged until device testing is complete.
           files: |
             DuoBar_2.7.2-beta3_RootHide.deb
             SHA256SUMS-RootHide.txt
