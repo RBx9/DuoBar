@@ -47,8 +47,13 @@ static void DuoArc(CGPoint center, CGFloat radius, CGFloat start, CGFloat end, U
     CGFloat scale = MIN(self.bounds.size.width / 32.0, self.bounds.size.height / 34.0);
     CGFloat left = (self.bounds.size.width - 32.0 * scale) / 2.0;
     CGFloat top = (self.bounds.size.height - 34.0 * scale) / 2.0;
-    self.hotspotImageView.frame = CGRectMake(left + 8.5 * scale, top + 12.5 * scale,
-                                              15.0 * scale, 10.0 * scale);
+    if (self.networkType.length > 0) {
+        self.hotspotImageView.frame = CGRectMake(left + 9.5 * scale, top + 19.0 * scale,
+                                                  13.0 * scale, 8.0 * scale);
+    } else {
+        self.hotspotImageView.frame = CGRectMake(left + 8.5 * scale, top + 12.5 * scale,
+                                                  15.0 * scale, 10.0 * scale);
+    }
 }
 
 - (void)setHotspotActive:(BOOL)hotspotActive {
@@ -63,6 +68,12 @@ static void DuoArc(CGPoint center, CGFloat radius, CGFloat start, CGFloat end, U
     self.hotspotImageView.image = [image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     self.hotspotImageView.tintColor = self.foreground ?: UIColor.labelColor;
     [self.hotspotImageView setNeedsLayout];
+}
+
+- (void)setNetworkType:(NSString *)networkType {
+    _networkType = [networkType copy];
+    [self setNeedsLayout];
+    [self setNeedsDisplay];
 }
 
 - (void)setForeground:(UIColor *)foreground {
@@ -108,12 +119,30 @@ static void DuoArc(CGPoint center, CGFloat radius, CGFloat start, CGFloat end, U
         NSParagraphStyleAttributeName: paragraph,
     }];
 
+    if (self.networkType.length > 0) {
+        // Keep the carrier family label readable while fitting within the battery circle.
+        UIFont *networkFont = [UIFont systemFontOfSize:8.5 weight:UIFontWeightHeavy];
+        NSMutableParagraphStyle *networkParagraph = [NSMutableParagraphStyle new];
+        networkParagraph.alignment = NSTextAlignmentCenter;
+        [self.networkType drawInRect:CGRectMake(4, 9.0, 24, 10.5)
+            withAttributes:@{
+                NSFontAttributeName: networkFont,
+                NSForegroundColorAttributeName: foreground,
+                NSParagraphStyleAttributeName: networkParagraph,
+            }];
+    }
+
     if (self.hotspotActive) {
         // The matching iOS status-bar image is drawn by hotspotImageView.
     } else if (self.wifiVisible) {
         CGContextSaveGState(context);
-        CGContextTranslateCTM(context, 9, 13);
-        CGContextScaleCTM(context, 0.78, 0.78);
+        if (self.networkType.length > 0) {
+            CGContextTranslateCTM(context, 10.7, 18.1);
+            CGContextScaleCTM(context, 0.56, 0.56);
+        } else {
+            CGContextTranslateCTM(context, 9, 13);
+            CGContextScaleCTM(context, 0.78, 0.78);
+        }
         [self drawWiFiWithForeground:foreground inactive:inactive];
         CGContextRestoreGState(context);
     }
