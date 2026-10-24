@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.7.2 beta 4 — Rootless arm64e Settings compatibility
+
+- Add both arm64 and arm64e slices to the Rootless tweak library and Settings executable while retaining the `iphoneos-arm64` package architecture.
+- Keep the RootHide and standard Rootless packages separate and compatible with the existing beta3 transition fix.
+- RootHide and Rootless test builds only; stable/Sileo remains unchanged pending device testing.
+
 ## 2.7.2 beta 2 — Rotation and Control Center transition fix
 
 - Rescan status-bar battery, Wi-Fi, cellular, hotspot, and 5G/LTE views after UIKit rebuilds them.
@@ -9,7 +15,7 @@
 ## 2.7.2 beta 3 — Keep transition coverage scoped
 
 - Preserve the previous overlay only for zero-height UIKit layout transitions, avoiding stale overlays in retiring status-bar containers.
-- RootHide beta only; the Rootless and stable/Sileo releases remain deferred until device testing.
+- The Rootless package was later superseded by Beta 4 after adding the arm64e Settings executable slice.
 
 ## 0.2.4 beta 8 — Compact 5G/LTE status label
 

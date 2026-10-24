@@ -1,5 +1,7 @@
 # DuoBar v2.7.2 Beta 3 — RootHide and Rootless
 
+**Superseded for Rootless on arm64e devices:** Beta 3's Rootless Settings executable was built for arm64 only. Install Beta 4 instead, which includes arm64 and arm64e slices. The Beta 3 RootHide package is unaffected.
+
 This RootHide update fixes a status-bar transition issue where the stock battery could reappear after rotating the screen or opening Control Center. It rescans UIKit's rebuilt status-bar views and refreshes DuoBar immediately after layout. During zero-height transition layouts, it keeps the last valid DuoBar drawn and the native icons covered, while allowing retired status-bar containers to cleanly restore their native views.
 
 The build retains the compact 5G/LTE label, Wi-Fi and Personal Hotspot marks, battery percentage, cellular dots, size slider, Settings, and the v2.7.1-based Control Center behavior.

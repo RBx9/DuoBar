@@ -22,38 +22,42 @@ jobs:
 
       - name: Configure Theos
         run: |
-          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "THEOS=$RUNNER_TEMP/duobar-theos-roothide" >> "$GITHUB_ENV"
+          echo "THEOS_ROOTLESS=$RUNNER_TEMP/duobar-theos-rootless" >> "$GITHUB_ENV"
           echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
 
-      - name: Fetch RootHide Theos and iOS SDK
+      - name: Fetch RootHide and standard Theos with iOS SDK
         run: |
           git clone --recursive --depth 1 https://github.com/roothide/theos.git "$THEOS"
+          git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS_ROOTLESS"
           git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
           git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS16.5.sdk
-          mkdir -p "$THEOS/sdks"
+          mkdir -p "$THEOS/sdks" "$THEOS_ROOTLESS/sdks"
           cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS16.5.sdk" "$THEOS_ROOTLESS/sdks/"
 
       - name: Build and verify the RootHide package
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq 'DUO_VERSION @"2.7.2-beta.3"' Shared/DuoMetadata.h
-          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide TARGET=iphone:clang:16.5:16.0
-          files=(packages/*.deb)
+          grep -Fq 'DUO_VERSION @"2.7.2-beta.4"' Shared/DuoMetadata.h
+          mkdir -p "$RUNNER_TEMP/roothide-packages"
+          gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide TARGET=iphone:clang:16.5:16.0 THEOS_PACKAGE_DIR="$RUNNER_TEMP/roothide-packages"
+          files=("$RUNNER_TEMP/roothide-packages"/*.deb)
           test "${#files[@]}" -eq 1
           deb="${files[0]}"
           test "$(dpkg-deb -f "$deb" Package)" = local.duobar
-          test "$(dpkg-deb -f "$deb" Version)" = '2.7.2~beta3'
+          test "$(dpkg-deb -f "$deb" Version)" = '2.7.2~beta4'
           test "$(dpkg-deb -f "$deb" Architecture)" = iphoneos-arm64e
           dpkg-deb --contents "$deb" | tee contents.txt
           grep -Fq 'Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib' contents.txt
           grep -Fq 'Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarIcon.png' contents.txt
           grep -Fq 'Library/PreferenceLoader/Preferences/DuoBar.plist' contents.txt
-          dpkg-deb --extract "$deb" extracted
+          dpkg-deb --extract "$deb" "$RUNNER_TEMP/extracted-roothide"
           python3 - <<'PY'
           import plistlib
           from pathlib import Path
-          root = Path("extracted/Library")
+          root = Path(__import__("os").environ["RUNNER_TEMP"]) / "extracted-roothide/Library"
           bundle = root / "PreferenceBundles/DuoBarPrefs.bundle"
           spec = root / "PreferenceLoader/Preferences/DuoBar.plist"
           info = plistlib.loads((bundle / "Info.plist").read_bytes())
@@ -65,15 +69,58 @@ jobs:
               assert image[:8] == bytes.fromhex("89504e470d0a1a0a") and image[25] == 6, name
           print("Validated RootHide package, Settings metadata, and icons")
           PY
-          cp "$deb" DuoBar_2.7.2-beta3_RootHide.deb
-          shasum -a 256 DuoBar_2.7.2-beta3_RootHide.deb > SHA256SUMS-RootHide.txt
+          cp "$deb" DuoBar_2.7.2-beta4_RootHide.deb
+          shasum -a 256 DuoBar_2.7.2-beta4_RootHide.deb > SHA256SUMS-RootHide.txt
+
+      - name: Build and verify the Rootless package with both device slices
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp control "$RUNNER_TEMP/roothide-control"
+          cp packaging/control.rootless control
+          mkdir -p "$RUNNER_TEMP/rootless-packages"
+          THEOS="$THEOS_ROOTLESS" gmake clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS='arm64 arm64e' TARGET=iphone:clang:16.5:16.0 THEOS_PACKAGE_DIR="$RUNNER_TEMP/rootless-packages"
+          files=("$RUNNER_TEMP/rootless-packages"/*.deb)
+          test "${#files[@]}" -eq 1
+          deb="${files[0]}"
+          test "$(dpkg-deb -f "$deb" Package)" = local.duobar.rootless
+          test "$(dpkg-deb -f "$deb" Version)" = '2.7.2~beta4'
+          test "$(dpkg-deb -f "$deb" Architecture)" = iphoneos-arm64
+          dpkg-deb --contents "$deb" | tee rootless-contents.txt
+          grep -Fq 'var/jb/Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib' rootless-contents.txt
+          grep -Fq 'var/jb/Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarPrefs' rootless-contents.txt
+          grep -Fq 'var/jb/Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarIcon.png' rootless-contents.txt
+          grep -Fq 'var/jb/Library/PreferenceLoader/Preferences/DuoBar.plist' rootless-contents.txt
+          dpkg-deb --extract "$deb" "$RUNNER_TEMP/extracted-rootless"
+          for binary in \
+            "$RUNNER_TEMP/extracted-rootless/var/jb/Library/PreferenceBundles/DuoBarPrefs.bundle/DuoBarPrefs" \
+            "$RUNNER_TEMP/extracted-rootless/var/jb/Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib"; do
+            archs="$(xcrun lipo -archs "$binary")"
+            grep -Eq '(^|[[:space:]])arm64([[:space:]]|$)' <<< "$archs"
+            grep -Eq '(^|[[:space:]])arm64e([[:space:]]|$)' <<< "$archs"
+          done
+          python3 - <<'PY'
+          import os
+          import plistlib
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"]) / "extracted-rootless/var/jb/Library"
+          bundle = root / "PreferenceBundles/DuoBarPrefs.bundle"
+          spec = root / "PreferenceLoader/Preferences/DuoBar.plist"
+          assert (root / "MobileSubstrate/DynamicLibraries/DuoBar.dylib").is_file()
+          assert (bundle / "DuoBarIcon.png").is_file()
+          assert plistlib.loads(spec.read_bytes())["entry"]["icon"] == "DuoBar.png"
+          print("Validated Rootless install prefix, Settings bundle, and icon")
+          PY
+          cp "$deb" DuoBar_2.7.2-beta4_Rootless.deb
+          shasum -a 256 DuoBar_2.7.2-beta4_Rootless.deb > SHA256SUMS-Rootless.txt
+          cp "$RUNNER_TEMP/roothide-control" control
 
       - name: Publish GitHub prerelease
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.7.2-beta.3
+          tag_name: v2.7.2-beta.4
           target_commitish: ${{ github.sha }}
-          name: DuoBar v2.7.2 Beta 3 (RootHide + Rootless)
+          name: DuoBar v2.7.2 Beta 4 (RootHide + Rootless)
           prerelease: true
           make_latest: false
           overwrite_files: true
@@ -82,9 +129,19 @@ jobs:
 
             This beta draws the compact 5G/LTE carrier label inside DuoBar in app status bars and Control Center. It also refreshes and covers status icons synchronously when UIKit rebuilds the status bar during rotation or Control Center transitions, preventing the stock battery from flashing back. The Wi-Fi and Personal Hotspot marks remain in the ring, and the released settings, size slider, battery percentage, cellular dots, and Control Center behavior are retained.
 
-            Install `DuoBar_2.7.2-beta3_RootHide.deb` on Dopamine RootHide, or `DuoBar_2.7.2-beta3_Rootless.deb` on standard Dopamine Rootless, then respring. Do not install both packages. Use `docs/TEST-v2.7.2-beta3.md` for the device checks. Compilation and package contents are verified; live iPhone behavior still needs testing.
+            Install `DuoBar_2.7.2-beta4_RootHide.deb` on Dopamine RootHide, or `DuoBar_2.7.2-beta4_Rootless.deb` on standard Dopamine Rootless, then respring. Do not install both packages. The Rootless package includes arm64 and arm64e slices for the tweak and Settings executable. Use `docs/TEST-v2.7.2-beta4.md` for the device checks. Compilation and package contents are verified; live iPhone behavior still needs testing.
 
             Both packages are prereleases for community testing. The stable/Sileo release remains unchanged until device testing is complete.
           files: |
-            DuoBar_2.7.2-beta3_RootHide.deb
+            DuoBar_2.7.2-beta4_RootHide.deb
             SHA256SUMS-RootHide.txt
+            DuoBar_2.7.2-beta4_Rootless.deb
+            SHA256SUMS-Rootless.txt
+
+      - name: Mark the beta3 Rootless package as superseded
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release edit v2.7.2-beta.3 \
+            --repo "$GITHUB_REPOSITORY" \
+            --notes-file docs/RELEASE-v2.7.2-beta3-superseded.md
