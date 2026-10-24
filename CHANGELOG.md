@@ -1,3 +1,9 @@
+## 2.7.2 beta 5 — Rootless package permissions and carrier label
+
+- Build release packages with the GitHub macOS Theos toolchains; verify Rootless executable permissions and arm64/arm64e slices before publishing.
+- Increase the compact 5G/LTE carrier label from 7 pt to 8.5 pt while keeping it inside the DuoBar ring.
+- Community beta only; stable v2.7.1 and Sileo remain unchanged.
+
 # Changelog
 
 ## 2.7.2 beta 4 — Rootless arm64e Settings compatibility

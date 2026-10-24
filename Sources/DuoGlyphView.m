@@ -120,10 +120,11 @@ static void DuoArc(CGPoint center, CGFloat radius, CGFloat start, CGFloat end, U
     }];
 
     if (self.networkType.length > 0) {
-        UIFont *networkFont = [UIFont systemFontOfSize:7.0 weight:UIFontWeightHeavy];
+        // Keep the carrier family label readable while fitting within the battery circle.
+        UIFont *networkFont = [UIFont systemFontOfSize:8.5 weight:UIFontWeightHeavy];
         NSMutableParagraphStyle *networkParagraph = [NSMutableParagraphStyle new];
         networkParagraph.alignment = NSTextAlignmentCenter;
-        [self.networkType drawInRect:CGRectMake(5, 9.1, 22, 8.9)
+        [self.networkType drawInRect:CGRectMake(4, 9.0, 24, 10.5)
             withAttributes:@{
                 NSFontAttributeName: networkFont,
                 NSForegroundColorAttributeName: foreground,
