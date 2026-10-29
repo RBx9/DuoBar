@@ -32,6 +32,13 @@
 @property(nonatomic, copy) NSString *text;
 @end
 
+// Packages enable DuoBar on iOS 16 only, matching their firmware dependency
+// (checked by scripts/check-private-api.py). Simulator test builds raise this
+// to evaluate newer iOS versions; packages never do.
+#ifndef DUO_MAX_IOS_MAJOR
+#define DUO_MAX_IOS_MAJOR 16
+#endif
+
 static char DuoNativeKey, DuoContainerKey, DuoIconControllerKey, DuoNetworkControllerKey;
 static char DuoSavedPercentageKey, DuoChainImageResultKey, DuoRotationOriginalTransformKey;
 static __weak _UIBatteryView *DuoLastBattery;
@@ -621,16 +628,17 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
         : area;
     CGRect bounds = container.bounds;
     CGRect visible = DuoVisibleRect(container);
-    DuoGlyphFrame frame = DuoComputeGlyphFrame(CGRectGetMinX(bounds), CGRectGetMinY(bounds),
-        CGRectGetMaxX(bounds), CGRectGetMaxY(bounds), CGRectGetMaxX(area), CGRectGetMidY(batteryRect),
-        DuoSizeScale, CGRectGetMinY(visible), CGRectGetMaxY(visible));
-    CGFloat x = frame.x, y = frame.y, width = frame.width, height = frame.height;
-
     BOOL inControlCenter = DuoControlCenterVisible(container);
-    if (inControlCenter) {
-        // Preserve the hotspot beta's stable Control Center glyph position.
-        x = MIN(CGRectGetMaxX(container.bounds) - width, x + 12);
-    }
+    // In Control Center, use the Home Screen's placement so the DuoBar that
+    // Control Center animates closed lands exactly on the Home Screen's one.
+    DuoGlyphFrame frame = inControlCenter
+        ? DuoComputeControlCenterGlyphFrame(CGRectGetMinX(bounds), CGRectGetMaxX(bounds),
+            CGRectGetHeight(bounds), CGRectGetMaxX(area), CGRectGetMidY(batteryRect),
+            DuoSizeScale, CGRectGetMinY(visible), CGRectGetMaxY(visible))
+        : DuoComputeGlyphFrame(CGRectGetMinX(bounds), CGRectGetMinY(bounds),
+            CGRectGetMaxX(bounds), CGRectGetMaxY(bounds), CGRectGetMaxX(area), CGRectGetMidY(batteryRect),
+            DuoSizeScale, CGRectGetMinY(visible), CGRectGetMaxY(visible));
+    CGFloat x = frame.x, y = frame.y, width = frame.width, height = frame.height;
 
     [CATransaction begin];
     [CATransaction setDisableActions:YES];
@@ -1099,7 +1107,8 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
 
 %ctor {
     @autoreleasepool {
-        if (NSProcessInfo.processInfo.operatingSystemVersion.majorVersion != 16) return;
+        NSInteger major = NSProcessInfo.processInfo.operatingSystemVersion.majorVersion;
+        if (major < 16 || major > DUO_MAX_IOS_MAJOR) return;
         DuoControllers = [NSHashTable weakObjectsHashTable];
         DuoPercentageViews = [NSHashTable weakObjectsHashTable];
         DuoSpringBoard = [NSBundle.mainBundle.bundleIdentifier isEqualToString:@"com.apple.springboard"];

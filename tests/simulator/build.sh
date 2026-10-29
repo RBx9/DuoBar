@@ -2,6 +2,8 @@
 # Build simulator-only test dylibs. Never packaged.
 # - DuoBar.dylib: the real Sources/Tweak.xm, preprocessed with the Logos
 #   internal generator so it needs no Substrate in the simulator.
+# - DuoBar-anyos.dylib: the same source with the iOS 16 gate raised
+#   (DUO_MAX_IOS_MAJOR=99), only to evaluate newer iOS versions in the simulator.
 # - DuoProbe.dylib: tests/simulator/DuoProbe.m.
 # Usage: tests/simulator/build.sh <output-dir>
 set -euo pipefail
@@ -17,6 +19,9 @@ cc=(xcrun -sdk iphonesimulator clang -target "$(uname -m)-apple-ios16.0-simulato
 "${cc[@]}" -I"$root/Sources" -I"$root/Shared" -I"$out/include" "$out/Tweak.mm" "$root/Sources/DuoGlyphView.m" \
     -framework UIKit -framework QuartzCore -framework CoreGraphics -framework CoreFoundation -framework Foundation \
     -o "$out/DuoBar.dylib"
+"${cc[@]}" -DDUO_MAX_IOS_MAJOR=99 -I"$root/Sources" -I"$root/Shared" -I"$out/include" "$out/Tweak.mm" \
+    "$root/Sources/DuoGlyphView.m" -framework UIKit -framework QuartzCore -framework CoreGraphics \
+    -framework CoreFoundation -framework Foundation -o "$out/DuoBar-anyos.dylib"
 "${cc[@]}" "$root/tests/simulator/DuoProbe.m" -framework UIKit -framework QuartzCore -framework CoreGraphics -framework Foundation \
     -o "$out/DuoProbe.dylib"
 ls -l "$out"/*.dylib

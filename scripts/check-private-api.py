@@ -73,6 +73,21 @@ def main():
                     not any(name in sels for sels in manifest.values()):
                 failures.append(f"{hooked} -{name} is missing from the simulator probe manifest")
 
+    # The runtime OS gate must match the firmware range both packages declare,
+    # and no build may raise it.
+    gate = re.search(r"#define DUO_MAX_IOS_MAJOR (\d+)", source)
+    if not gate:
+        failures.append("DUO_MAX_IOS_MAJOR default is missing")
+    else:
+        for control in (ROOT / "control", ROOT / "packaging/control.rootless"):
+            bound = re.search(r"firmware \(<< (\d+)\.0\)", control.read_text())
+            if not bound or int(bound.group(1)) != int(gate.group(1)) + 1:
+                failures.append(f"{control.name}: firmware upper bound does not match DUO_MAX_IOS_MAJOR "
+                                f"{gate.group(1)}")
+        for makefile in (ROOT / "Makefile", ROOT / "duobarprefs/Makefile"):
+            if "DUO_MAX_IOS_MAJOR" in makefile.read_text():
+                failures.append(f"{makefile.relative_to(ROOT)} overrides DUO_MAX_IOS_MAJOR")
+
     if failures:
         print("Private API safety check failed:")
         for failure in failures:

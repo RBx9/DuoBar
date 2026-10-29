@@ -2,8 +2,10 @@ name: DuoBar simulator checks
 
 # Simulator-only evidence; nothing here is packaged or published. Probes the
 # private status-bar classes and selectors DuoBar uses on each available iOS
-# simulator runtime, renders DuoBar where it loads (iOS 16), and traces it in
-# SpringBoard while Control Center opens and closes.
+# simulator runtime, renders DuoBar in Settings and on the Home Screen, and
+# traces it in SpringBoard while Control Center opens and closes. iOS 16 uses
+# the release gate; newer runtimes use a simulator-only build with the gate
+# raised, to evaluate them without changing what the packages support.
 on:
   push:
     branches:
@@ -22,7 +24,7 @@ jobs:
   simulator:
     name: Simulator probe (${{ matrix.image }})
     runs-on: ${{ matrix.image }}
-    timeout-minutes: 75
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -59,3 +61,15 @@ jobs:
 
       - name: Probe, render and trace
         run: tests/simulator/run.sh "$RUNNER_TEMP/sim" "$RUNNER_TEMP/venv/bin/python"
+
+      - name: Upload contact sheets and probe output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-${{ matrix.image }}-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/sim/sheet-*.png
+            ${{ runner.temp }}/sim/shots/*.txt
+            ${{ runner.temp }}/sim/shots/*.summary
+          if-no-files-found: ignore
+          retention-days: 30

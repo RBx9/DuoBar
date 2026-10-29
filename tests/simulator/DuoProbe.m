@@ -4,7 +4,6 @@
 // SpringBoard with DUO_PROBE_CC=1, traces DuoBar while Control Center closes.
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
-#import <dlfcn.h>
 #import <objc/message.h>
 #import <objc/runtime.h>
 
@@ -47,8 +46,9 @@ static NSArray<NSArray *> *DuoProbeManifest(void) {
 }
 
 static void DuoProbeReportAPIs(void) {
-    // Control Center classes live in a private framework that apps do not load.
-    dlopen("/System/Library/PrivateFrameworks/ControlCenterUI.framework/ControlCenterUI", RTLD_LAZY);
+    // Control Center classes are only loaded in SpringBoard; loading their
+    // framework into an app crashes it on iOS 16 and 17, so they are reported
+    // as missing there.
     for (NSArray *entry in DuoProbeManifest()) {
         NSString *className = entry[0];
         Class cls = NSClassFromString(className);
@@ -85,6 +85,16 @@ static NSArray<UIWindow *> *DuoProbeWindows(void) {
     return windows.array;
 }
 
+// Visible on screen: neither the view nor any ancestor is hidden or transparent
+// in its current (presentation) state.
+static BOOL DuoProbeEffectivelyVisible(UIView *view) {
+    for (UIView *v = view; v; v = v.superview) {
+        CALayer *layer = v.layer.presentationLayer ?: v.layer;
+        if (v.hidden || layer.hidden || layer.opacity < 0.01) return NO;
+    }
+    return view.window != nil;
+}
+
 static NSString *DuoProbeRect(CGRect r) {
     return [NSString stringWithFormat:@"{%.1f,%.1f,%.1f,%.1f}", r.origin.x, r.origin.y, r.size.width, r.size.height];
 }
@@ -100,10 +110,18 @@ static void DuoProbeDump(UIView *view, UIWindow *window, NSUInteger depth, NSUIn
             id value = ((id (*)(id, SEL))objc_msgSend)(view, @selector(text));
             if ([value isKindOfClass:NSString.class]) text = value;
         }
-        DuoProbeLog(@"view depth=%lu %@ frame=%@ window=%@ hidden=%d alpha=%.2f clips=%d text=\"%@\"",
+        NSMutableArray<NSString *> *chain = [NSMutableArray array];
+        if ([name isEqualToString:@"DuoGlyphView"]) {
+            for (UIView *a = view.superview; a && chain.count < 8; a = a.superview) {
+                [chain addObject:[NSString stringWithFormat:@"%@%@%@", NSStringFromClass(a.class),
+                    a.clipsToBounds ? @"(clips)" : @"", DuoProbeRect(a.bounds)]];
+            }
+        }
+        DuoProbeLog(@"view depth=%lu %@ frame=%@ window=%@ hidden=%d alpha=%.2f clips=%d visible=%d text=\"%@\"%@%@",
             (unsigned long)depth, name, DuoProbeRect(view.frame),
             DuoProbeRect([view convertRect:view.bounds toView:window]),
-            view.hidden, view.alpha, view.clipsToBounds, text);
+            view.hidden, view.alpha, view.clipsToBounds, DuoProbeEffectivelyVisible(view), text,
+            chain.count ? @" chain=" : @"", [chain componentsJoinedByString:@"<"]);
     }
     for (UIView *subview in view.subviews) DuoProbeDump(subview, window, depth + 1, count);
 }
@@ -144,7 +162,8 @@ static void DuoProbeReportLayout(void) {
 }
 - (void)collect:(UIView *)view into:(NSMutableArray<NSString *> *)items {
     NSString *name = NSStringFromClass(view.class);
-    if ([name isEqualToString:@"DuoGlyphView"] || [name isEqualToString:@"_UIBatteryView"]) {
+    if (([name isEqualToString:@"DuoGlyphView"] || [name isEqualToString:@"_UIBatteryView"]) &&
+        DuoProbeEffectivelyVisible(view)) {
         CALayer *layer = view.layer.presentationLayer ?: view.layer;
         CALayer *root = view.window.layer.presentationLayer ?: view.window.layer;
         CGRect r = [layer convertRect:layer.bounds toLayer:root];

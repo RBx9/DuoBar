@@ -49,4 +49,24 @@ static inline DuoGlyphFrame DuoComputeGlyphFrame(double minX, double minY, doubl
     return frame;
 }
 
+// Control Center draws its own status bar and, when it closes, animates that
+// bar into the place of the Home Screen's before hiding it. DuoBar therefore
+// uses the Home Screen's rule here as well: centred on the battery, right edge
+// on the indicators, and limited only by visible space. Clamping it inside
+// Control Center's shorter (44 pt) container, or the old 12 pt offset, left it
+// up to 12 pt right and 7 pt higher than the Home Screen's DuoBar, so it
+// jumped down and left at the moment Control Center finished closing.
+static inline DuoGlyphFrame DuoComputeControlCenterGlyphFrame(double minX, double maxX, double containerHeight,
+        double areaMaxX, double batteryMidY, double scale, double visibleMinY, double visibleMaxY) {
+    double height = fmin(30.0, containerHeight - 2.0) * scale;
+    int limited = visibleMaxY - visibleMinY > 10.0;
+    if (limited) height = fmin(height, visibleMaxY - visibleMinY - 2.0);
+    double width = height * 32.0 / 34.0;
+    double x = fmax(minX, fmin(areaMaxX - width, maxX - width));
+    double y = batteryMidY - height / 2.0;
+    if (limited) y = fmax(visibleMinY + 1.0, fmin(y, visibleMaxY - 1.0 - height));
+    DuoGlyphFrame frame = {x, y, width, height};
+    return frame;
+}
+
 #endif
