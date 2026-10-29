@@ -93,6 +93,12 @@ while IFS=$'\t' read -r runtime version device <&3; do
                 "$sbout" >> "$dir/sheet-$major.tsv"
             echo "== Control Center trace: iOS $version $device ${size}x"
             python3 -I "$here/trace.py" "$sbout" | tee "$sbout.summary"
+            # Which classes draw SpringBoard's status bar on this iOS version.
+            if [ "$size" = 1.0 ] && ! grep -qx "$version" "$dir/regions-printed" 2>/dev/null; then
+                echo "== Status-bar views in SpringBoard: iOS $version $device"
+                grep -E "DUOPROBE .* region " "$sbout" | sed 's/^DUOPROBE \[[^]]*\] //' | head -160
+                echo "$version" >> "$dir/regions-printed"
+            fi
         else
             echo "::warning::SpringBoard probe did not report on $device (iOS $version, ${size}x)"
             head -c 3000 "$sbout"

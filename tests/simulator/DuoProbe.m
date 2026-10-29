@@ -126,6 +126,37 @@ static void DuoProbeDump(UIView *view, UIWindow *window, NSUInteger depth, NSUIn
     for (UIView *subview in view.subviews) DuoProbeDump(subview, window, depth + 1, count);
 }
 
+// Every visible view in the top status-bar band, whatever its class, with two
+// superclasses: shows which classes draw the status bar on a given iOS version.
+static void DuoProbeRegionVisit(UIView *view, UIWindow *window, NSUInteger depth, NSUInteger *count) {
+    if (depth > 40 || *count > 160 || !DuoProbeEffectivelyVisible(view)) return;
+    CGRect r = [view convertRect:view.bounds toView:window];
+    BOOL inBand = CGRectGetMinY(r) < 70 && CGRectGetHeight(r) <= 70 && CGRectGetWidth(r) <= 420 &&
+        CGRectGetWidth(r) > 0.5 && CGRectGetHeight(r) > 0.5;
+    if (inBand && depth > 0) {
+        (*count)++;
+        Class cls = view.class;
+        NSString *supers = [NSString stringWithFormat:@"%@>%@", NSStringFromClass(class_getSuperclass(cls)),
+            NSStringFromClass(class_getSuperclass(class_getSuperclass(cls)))];
+        NSString *text = @"";
+        if ([view respondsToSelector:@selector(text)]) {
+            id value = ((id (*)(id, SEL))objc_msgSend)(view, @selector(text));
+            if ([value isKindOfClass:NSString.class]) text = value;
+        }
+        DuoProbeLog(@"region %@ depth=%lu %@ (%@) rect=%@ text=\"%@\"", NSStringFromClass(window.class),
+            (unsigned long)depth, NSStringFromClass(cls), supers, DuoProbeRect(r), text);
+    }
+    for (UIView *subview in view.subviews) DuoProbeRegionVisit(subview, window, depth + 1, count);
+}
+
+static void DuoProbeReportStatusRegion(void) {
+    for (UIWindow *window in DuoProbeWindows()) {
+        if (window.hidden) continue;
+        NSUInteger count = 0;
+        DuoProbeRegionVisit(window, window, 0, &count);
+    }
+}
+
 static void DuoProbeReportLayout(void) {
     UIScreen *screen = UIScreen.mainScreen;
     DuoProbeLog(@"screen bounds=%@ scale=%.0f", DuoProbeRect(screen.bounds), screen.scale);
@@ -242,6 +273,7 @@ __attribute__((constructor)) static void DuoProbeInit(void) {
             (long)v.minorVersion, (long)v.patchVersion, model ?: "?");
         DuoProbeReportAPIs();
         DuoProbeReportLayout();
+        if (springBoard) DuoProbeReportStatusRegion();
         if (springBoard && getenv("DUO_PROBE_CC")) DuoProbeTraceControlCenter();
     });
 }
