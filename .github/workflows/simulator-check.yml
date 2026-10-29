@@ -1,0 +1,57 @@
+name: DuoBar simulator checks
+
+# Simulator-only evidence; nothing here is packaged or published. Probes the
+# private status-bar classes and selectors DuoBar uses on each available iOS
+# simulator runtime, renders DuoBar where it loads (iOS 16), and traces it in
+# SpringBoard while Control Center opens and closes.
+on:
+  push:
+    branches:
+      - claude/duobar-development-2iw4np
+    paths:
+      - 'Sources/**'
+      - 'Shared/**'
+      - 'tests/simulator/**'
+      - '.github/workflows/simulator-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  simulator:
+    name: Simulator probe (${{ matrix.image }})
+    runs-on: ${{ matrix.image }}
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [macos-latest, macos-15]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Xcode and installed simulator runtimes
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+
+      - name: Try to install older iOS simulator runtimes
+        continue-on-error: true
+        timeout-minutes: 30
+        run: |
+          for version in 16.4 17.5; do
+            xcodebuild -downloadPlatform iOS -buildVersion "$version" ||
+              echo "::warning::iOS $version simulator runtime could not be installed on this image"
+          done
+          xcrun simctl list runtimes
+
+      - name: Build simulator test dylibs
+        run: tests/simulator/build.sh "$RUNNER_TEMP/sim"
+
+      - name: Prepare image tooling
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pillow
+
+      - name: Probe, render and trace
+        run: tests/simulator/run.sh "$RUNNER_TEMP/sim" "$RUNNER_TEMP/venv/bin/python"
