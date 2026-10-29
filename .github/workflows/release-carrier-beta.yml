@@ -51,6 +51,14 @@ jobs:
             echo "artifact=DuoBar-$base-beta$beta-${GITHUB_SHA::12}"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Run the glyph layout tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cc -std=c99 -Wall -Wextra -Werror tests/layout-test.c -lm -o "$RUNNER_TEMP/layout-test"
+          "$RUNNER_TEMP/layout-test" | tee dist/layout-test.txt
+
       - name: Install build prerequisites
         run: brew install make ldid dpkg gnu-tar xz rsync
 

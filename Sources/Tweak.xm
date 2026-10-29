@@ -6,6 +6,7 @@
 #import <objc/message.h>
 #import <math.h>
 #import "DuoGlyphView.h"
+#import "DuoLayout.h"
 
 @interface _UIBatteryView : UIView
 @property(nonatomic) double chargePercent;
@@ -427,6 +428,20 @@ static void DuoRestoreRotationIndicator(UIView *indicator) {
                              OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
+// The part of a status-bar container that can be seen: its window intersected
+// with every clipping ancestor, in the container's coordinates.
+static CGRect DuoVisibleRect(UIView *container) {
+    UIWindow *window = container.window;
+    if (!window) return CGRectNull;
+    CGRect visible = [window convertRect:window.bounds toView:container];
+    for (UIView *ancestor = container; ancestor && ancestor != window; ancestor = ancestor.superview) {
+        if (ancestor.clipsToBounds) {
+            visible = CGRectIntersection(visible, [ancestor convertRect:ancestor.bounds toView:container]);
+        }
+    }
+    return visible;
+}
+
 static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     long long total = view.numberOfBars;
     if (total <= 0) return 0;
@@ -599,18 +614,17 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     // allow a controlled overhang into the status bar's padding so that
     // compact containers can still visibly enlarge the glyph.
     // We don't modify the container's clipping policy or native UIKit views.
-    CGFloat baseHeight = MIN(30.0, CGRectGetHeight(container.bounds) - 2.0);
-    CGFloat height = baseHeight * DuoSizeScale;
-    CGFloat width = height * 32.0 / 34.0;
+    // The overhang is limited to visible space (see DuoLayout.h), which keeps
+    // an enlarged glyph on screen under a 20 pt Home-button status bar.
     CGRect batteryRect = battery
         ? [battery convertRect:battery.bounds toView:container]
         : area;
-    CGFloat x = CGRectGetMaxX(area) - width;
-    CGFloat y = CGRectGetMidY(batteryRect) - height / 2;
-    x = MAX(CGRectGetMinX(container.bounds), MIN(x, CGRectGetMaxX(container.bounds) - width));
-    CGFloat extra = MAX(0, height - (CGRectGetHeight(container.bounds) - 2.0)) / 2.0;
-    y = MAX(CGRectGetMinY(container.bounds) + 1 - extra,
-        MIN(y, CGRectGetMaxY(container.bounds) - height - 1 + extra));
+    CGRect bounds = container.bounds;
+    CGRect visible = DuoVisibleRect(container);
+    DuoGlyphFrame frame = DuoComputeGlyphFrame(CGRectGetMinX(bounds), CGRectGetMinY(bounds),
+        CGRectGetMaxX(bounds), CGRectGetMaxY(bounds), CGRectGetMaxX(area), CGRectGetMidY(batteryRect),
+        DuoSizeScale, CGRectGetMinY(visible), CGRectGetMaxY(visible));
+    CGFloat x = frame.x, y = frame.y, width = frame.width, height = frame.height;
 
     BOOL inControlCenter = DuoControlCenterVisible(container);
     if (inControlCenter) {

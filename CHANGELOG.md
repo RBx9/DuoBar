@@ -1,5 +1,6 @@
-## 2.7.2 beta 7 — Safer loading and verified CI packages
+## 2.7.2 beta 7 — Home-button iPhone sizing, safer loading and verified CI packages
 
+- Keep an enlarged DuoBar on screen on iPhones with a 20 pt status bar, such as the iPhone 8 Plus. Above about 110%, the ring was centred on the battery and rose past the top of the screen, cutting off a visible part of it at 130%–140%. It now moves down into view at the same size. Face ID status bars and Control Center keep their exact previous position, and if a parent view clips the status bar the ring shrinks to fit instead of being cut. The rule lives in `Sources/DuoLayout.h` and is checked by `tests/layout-test.c`.
 - Look up `_UIStatusBarStringView` at runtime instead of linking to the private class. Beta 5's tweak library carried a non-weak import of that class, which would stop DuoBar from loading on a firmware that does not export it.
 - Change DuoBar's status-bar tracking only on the main thread, and release the hotspot image buffer on an early return.
 - Verify every CI package with `scripts/verify-deb.py`: metadata, root ownership, 0755/0644 modes, arm64 and new-ABI arm64e slices, code signatures, substrate linkage, private-class imports, Settings plists, icons and warning-free build logs. `scripts/selftest-verify-deb.py` confirms the check rejects restrictive modes, old-ABI or missing arm64e slices, missing signatures and toolchain warnings.
