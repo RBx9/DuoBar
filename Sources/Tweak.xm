@@ -1120,7 +1120,8 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
               @"setNumberOfBars:", @"setNumberOfActiveBars:", @"setActiveColor:"]);
         BOOL wifiOK = DuoHasSelectors(DuoWifiClass, @[@"_updateActiveBars"]);
         BOOL cellOK = DuoHasSelectors(DuoCellularClass, @[@"_updateActiveBars"]);
-        if (!batteryOK || !signalOK || !wifiOK || !cellOK || !DuoStatusBarClass) return;
+        BOOL statusBarOK = DuoHasSelectors(DuoStatusBarClass, @[@"layoutSubviews", @"didMoveToWindow"]);
+        if (!batteryOK || !signalOK || !wifiOK || !cellOK || !statusBarOK) return;
         CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL,
             DuoPreferencesDidChange, CFSTR("local.duobar/preferences.changed"), NULL,
             CFNotificationSuspensionBehaviorDeliverImmediately);
@@ -1136,15 +1137,24 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
             UIApplicationDidBecomeActiveNotification object:nil queue:NSOperationQueue.mainQueue
             usingBlock:refreshStatusBars];
         DuoActivationObserver = @[foregroundObserver, activeObserver];
-        if (DuoStringClass) %init(DuoStatusStringHooks);
+        // Optional features are hooked only when their class is a view that has
+        // every hooked selector, so a renamed private API on another firmware
+        // disables just that feature instead of hooking a missing method.
+        NSArray<NSString *> *viewHooks = @[@"layoutSubviews", @"didMoveToWindow"];
+        if (DuoHasSelectors(DuoStringClass, @[@"text", @"setText:", @"layoutSubviews", @"didMoveToWindow"])) {
+            %init(DuoStatusStringHooks);
+        }
         %init(DuoBatteryHooks);
         %init(DuoSignalDataHooks);
         %init(DuoWifiHooks);
         %init(DuoCellularHooks);
-        if (NSClassFromString(@"_UIStatusBarImageView")) %init(DuoHotspotImageHooks);
+        if (DuoHasSelectors(NSClassFromString(@"_UIStatusBarImageView"),
+                @[@"setImage:", @"setAccessibilityLabel:", @"layoutSubviews", @"didMoveToWindow"])) {
+            %init(DuoHotspotImageHooks);
+        }
         %init(DuoStatusBarHooks);
-        if (NSClassFromString(@"CCUIStatusBar")) %init(DuoControlCenterStatusBarHooks);
-        if (DuoForegroundClass) {
+        if (DuoHasSelectors(NSClassFromString(@"CCUIStatusBar"), viewHooks)) %init(DuoControlCenterStatusBarHooks);
+        if (DuoHasSelectors(DuoForegroundClass, viewHooks)) {
             %init(DuoForegroundHooks);
         }
     }

@@ -39,10 +39,11 @@ int main(void) {
     for (int step = 0; step <= 14; step++) {
         double scale = 0.70 + step * 0.05;
 
-        // Face ID iPhones: tall status bars at the top of the screen keep the
-        // exact previous frame at every size.
-        const double notchHeights[] = {44, 47, 50, 54};
-        for (int i = 0; i < 4; i++) {
+        // Face ID iPhones: notch (44-50 pt) and Dynamic Island (54-62 pt)
+        // status bars at the top of the screen keep the exact previous frame
+        // at every size.
+        const double notchHeights[] = {44, 47, 48, 50, 54, 59, 62};
+        for (int i = 0; i < 7; i++) {
             double h = notchHeights[i];
             DuoGlyphFrame old = OldFrame(0, 0, 390, h, 370, h / 2, scale);
             DuoGlyphFrame now = DuoComputeGlyphFrame(0, 0, 390, h, 370, h / 2, scale, 0, 844);
