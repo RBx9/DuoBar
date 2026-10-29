@@ -35,13 +35,17 @@ jobs:
           xcodebuild -version
           xcrun simctl list runtimes
 
-      - name: Try to install older iOS simulator runtimes
+      # The macOS 15 image's Xcode can still install the iOS 16.4 and 17.5
+      # simulator runtimes; newer images cannot.
+      - name: Install the iOS 16.4 and 17.5 simulator runtimes
+        if: matrix.image == 'macos-15'
         continue-on-error: true
         timeout-minutes: 30
         run: |
           for version in 16.4 17.5; do
-            xcodebuild -downloadPlatform iOS -buildVersion "$version" ||
-              echo "::warning::iOS $version simulator runtime could not be installed on this image"
+            { xcodebuild -downloadPlatform iOS -buildVersion "$version" 2>&1 ||
+                echo "::warning::iOS $version simulator runtime could not be installed on this image"; } |
+              grep -v 'Downloading .*%' || true
           done
           xcrun simctl list runtimes
 

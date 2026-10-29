@@ -15,7 +15,8 @@ sdk="$(xcrun --sdk iphonesimulator --show-sdk-path)"
 cc=(xcrun -sdk iphonesimulator clang -target "$(uname -m)-apple-ios16.0-simulator" -isysroot "$sdk"
     -dynamiclib -fobjc-arc -Wall -Wextra)
 "${cc[@]}" -I"$root/Sources" -I"$root/Shared" -I"$out/include" "$out/Tweak.mm" "$root/Sources/DuoGlyphView.m" \
-    -framework UIKit -framework QuartzCore -framework CoreFoundation -framework Foundation -o "$out/DuoBar.dylib"
-"${cc[@]}" "$root/tests/simulator/DuoProbe.m" -framework UIKit -framework QuartzCore -framework Foundation \
+    -framework UIKit -framework QuartzCore -framework CoreGraphics -framework CoreFoundation -framework Foundation \
+    -o "$out/DuoBar.dylib"
+"${cc[@]}" "$root/tests/simulator/DuoProbe.m" -framework UIKit -framework QuartzCore -framework CoreGraphics -framework Foundation \
     -o "$out/DuoProbe.dylib"
 ls -l "$out"/*.dylib
