@@ -1,3 +1,11 @@
+## 2.7.2 beta 7 — Safer loading and verified CI packages
+
+- Look up `_UIStatusBarStringView` at runtime instead of linking to the private class. Beta 5's tweak library carried a non-weak import of that class, which would stop DuoBar from loading on a firmware that does not export it.
+- Change DuoBar's status-bar tracking only on the main thread, and release the hotspot image buffer on an early return.
+- Verify every CI package with `scripts/verify-deb.py`: metadata, root ownership, 0755/0644 modes, arm64 and new-ABI arm64e slices, code signatures, substrate linkage, private-class imports, Settings plists, icons and warning-free build logs. `scripts/selftest-verify-deb.py` confirms the check rejects restrictive modes, old-ABI or missing arm64e slices, missing signatures and toolchain warnings.
+- Branch pushes upload CI packages as workflow artifacts only. A prerelease is published only from a matching `v2.7.2-beta.N` tag, and never replaces an existing release.
+- Version 2.7.2~beta6 is skipped because an unsafe locally built package already used it. The 5G/LTE label, design, Settings, size slider, hotspot, Control Center and rotation behavior are unchanged. Stable v2.7.1 and Sileo remain unchanged.
+
 ## 2.7.2 beta 5 — Rootless package permissions and carrier label
 
 - Build release packages with the GitHub macOS Theos toolchains; verify Rootless executable permissions and arm64/arm64e slices before publishing.

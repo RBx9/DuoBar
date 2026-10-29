@@ -38,7 +38,10 @@ static double DuoLastBatteryLevel = -1;
 static BOOL DuoLastBatteryCharging = NO;
 static BOOL DuoLastBatteryLowPower = NO;
 static UIColor *DuoLastBatteryColor;
-static Class DuoBatteryClass, DuoWifiClass, DuoCellularClass, DuoForegroundClass, DuoStatusBarClass;
+// Resolve private UIKit classes at runtime. A compile-time reference such as
+// _UIStatusBarStringView.class becomes a non-weak import that stops the dylib
+// from loading if a firmware build does not export that class symbol.
+static Class DuoBatteryClass, DuoWifiClass, DuoCellularClass, DuoForegroundClass, DuoStatusBarClass, DuoStringClass;
 @class DuoStatusController;
 static void DuoScanHotspotIndicators(UIView *container);
 static BOOL DuoEnabled = YES;
@@ -261,7 +264,10 @@ static BOOL DuoImageLooksLikeChainLink(UIImage *image) {
     enum { Width = 48, Height = 32, PixelCount = Width * Height };
     uint8_t pixels[PixelCount * 4] = {0};
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    if (!colorSpace) return NO;
+    if (!colorSpace) {
+        CGImageRelease(source);
+        return NO;
+    }
     CGContextRef bitmap = CGBitmapContextCreate(pixels, Width, Height, 8, Width * 4,
         colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
     CGColorSpaceRelease(colorSpace);
@@ -715,6 +721,9 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 @end
 
 static void DuoRegisterIcon(UIView *icon) {
+    // Controllers and their weak tables are main-thread state. A stray
+    // off-main UIKit setter must not mutate them while layout enumerates.
+    if (!NSThread.isMainThread) return;
     if (![icon isKindOfClass:DuoBatteryClass] && ![icon isKindOfClass:DuoWifiClass]
             && ![icon isKindOfClass:DuoCellularClass] && !DuoIsHotspotIndicator(icon)) return;
     UIView *container = DuoStatusContainer(icon);
@@ -742,7 +751,7 @@ static void DuoRegisterIcon(UIView *icon) {
 }
 
 static void DuoRegisterNetworkView(_UIStatusBarStringView *view) {
-    if (!view) return;
+    if (!view || !NSThread.isMainThread) return;
     NSString *technology = DuoNetworkTechnology(view.text);
     UIView *container = technology ? DuoStatusContainer(view) : nil;
     DuoStatusController *previous = objc_getAssociatedObject(view, &DuoNetworkControllerKey);
@@ -784,7 +793,7 @@ static void DuoScanStatusIcons(UIView *container) {
             [candidate isKindOfClass:DuoCellularClass] ||
             DuoIsHotspotIndicator(candidate)) {
             DuoRegisterIcon(candidate);
-        } else if ([candidate isKindOfClass:_UIStatusBarStringView.class]) {
+        } else if (DuoStringClass && [candidate isKindOfClass:DuoStringClass]) {
             DuoRegisterNetworkView((_UIStatusBarStringView *)candidate);
         }
         [pending addObjectsFromArray:candidate.subviews];
@@ -809,7 +818,7 @@ static void DuoScanHotspotIndicators(UIView *container) {
 // The old layout hooks restored stock layers then deferred re-covering to
 // the next main queue cycle, exposing a frame of stock battery and signal.
 static void DuoKeepNativeCoveredDuringLayout(UIView *icon) {
-    if (!DuoEnabled || !icon.window) return;
+    if (!DuoEnabled || !icon.window || !NSThread.isMainThread) return;
     DuoStatusController *controller = objc_getAssociatedObject(icon, &DuoIconControllerKey);
     if (!controller || controller.glyph.hidden ||
         controller.glyph.superview != controller.container ||
@@ -818,7 +827,8 @@ static void DuoKeepNativeCoveredDuringLayout(UIView *icon) {
 }
 
 static void DuoKeepNetworkCoveredDuringLayout(_UIStatusBarStringView *view) {
-    if (!DuoEnabled || !view.window || !DuoNetworkTechnology(view.text)) return;
+    if (!DuoEnabled || !view.window || !NSThread.isMainThread ||
+        !DuoNetworkTechnology(view.text)) return;
     DuoStatusController *controller = objc_getAssociatedObject(view, &DuoNetworkControllerKey);
     if (!controller || controller.glyph.hidden || controller.glyph.superview != controller.container ||
         !DuoIsVisible(view, controller.container)) return;
@@ -826,6 +836,7 @@ static void DuoKeepNetworkCoveredDuringLayout(_UIStatusBarStringView *view) {
 }
 
 static void DuoUpdateContainer(UIView *container) {
+    if (!NSThread.isMainThread) return;
     DuoScanStatusIcons(container);
     DuoStatusController *controller = objc_getAssociatedObject(container, &DuoContainerKey);
     if (!controller) return;
@@ -1085,6 +1096,7 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
         DuoCellularClass = NSClassFromString(@"_UIStatusBarCellularSignalView");
         DuoForegroundClass = NSClassFromString(@"_UIStatusBarForegroundView");
         DuoStatusBarClass = NSClassFromString(@"_UIStatusBar");
+        DuoStringClass = NSClassFromString(@"_UIStatusBarStringView");
         // Enable the complete composition only if all data sources are supported.
         BOOL batteryOK = DuoHasSelectors(DuoBatteryClass,
             @[@"chargePercent", @"chargingState", @"saverModeActive", @"bodyColor",
@@ -1110,7 +1122,7 @@ static BOOL DuoHasSelectors(Class cls, NSArray<NSString *> *selectors) {
             UIApplicationDidBecomeActiveNotification object:nil queue:NSOperationQueue.mainQueue
             usingBlock:refreshStatusBars];
         DuoActivationObserver = @[foregroundObserver, activeObserver];
-        if (NSClassFromString(@"_UIStatusBarStringView")) %init(DuoStatusStringHooks);
+        if (DuoStringClass) %init(DuoStatusStringHooks);
         %init(DuoBatteryHooks);
         %init(DuoSignalDataHooks);
         %init(DuoWifiHooks);

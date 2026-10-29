@@ -1,6 +1,6 @@
 Package: local.duobar
 Name: DuoBar
-Version: 2.7.2~beta5
+Version: 2.7.2~beta7
 Architecture: iphoneos-arm
 Description: An iPhone Duo-inspired status bar for iOS 16.
  A circular battery ring with a live percentage, compact 5G/LTE and Wi-Fi indicators, and four cellular signal dots.
