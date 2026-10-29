@@ -3,9 +3,9 @@ name: DuoBar carrier beta (RootHide + Rootless)
 # Branch pushes build both packages with the official Theos toolchains on
 # GitHub's macOS runners, verify them with scripts/verify-deb.py, and upload
 # them as workflow artifacts only. A GitHub prerelease is created only when a
-# v2.7.2-beta.N tag matching the package version is pushed deliberately, and
-# never over an existing release. Stable releases and the Sileo source are not
-# touched by this workflow.
+# v2.7.2-beta.N tag matching the package version is pushed deliberately, or
+# when a manual run asks for it, and never over an existing release. Stable
+# releases and the Sileo source are not touched by this workflow.
 on:
   push:
     branches:
@@ -14,6 +14,11 @@ on:
     tags:
       - 'v2.7.2-beta.*'
   workflow_dispatch:
+    inputs:
+      publish_prerelease:
+        description: Publish the verified packages as a GitHub prerelease (never a full, stable or Sileo release)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -167,9 +172,11 @@ jobs:
           retention-days: 30
 
   publish:
-    name: Publish a GitHub prerelease for a pushed beta tag
+    name: Publish a GitHub prerelease for a beta tag or manual request
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v2.7.2-beta.')
+    if: >-
+      startsWith(github.ref, 'refs/tags/v2.7.2-beta.') ||
+      (github.event_name == 'workflow_dispatch' && inputs.publish_prerelease)
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -189,8 +196,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # The pushed tag must name the version that was built and verified.
-          test "$GITHUB_REF_NAME" = "$TAG"
+          # Only beta versions are ever published, and always as prereleases.
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            # A pushed tag must name the version that was built and verified.
+            test "$GITHUB_REF_NAME" = "$TAG"
+            target=(--verify-tag)
+          else
+            # A manual run creates the tag at the commit that was verified.
+            target=(--target "$GITHUB_SHA")
+          fi
           notes="docs/RELEASE-$TAG.md"
           test -f "$notes"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
@@ -199,7 +214,7 @@ jobs:
           fi
           (cd dist && sha256sum -c SHA256SUMS-RootHide.txt SHA256SUMS-Rootless.txt)
           base="${TAG%-beta.*}"
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --prerelease --latest=false \
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" "${target[@]}" --prerelease --latest=false \
             --title "DuoBar $base Beta ${TAG##*.} (RootHide + Rootless)" --notes-file "$notes" \
             "dist/DuoBar_${FILE_VERSION}_RootHide.deb" dist/SHA256SUMS-RootHide.txt \
             "dist/DuoBar_${FILE_VERSION}_Rootless.deb" dist/SHA256SUMS-Rootless.txt
