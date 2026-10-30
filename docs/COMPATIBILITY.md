@@ -28,7 +28,7 @@ No other iPhone 12–18 model has a beta 8 device report yet. Stable v2.7.1 Root
 1. Dopamine and Dopamine RootHide cover iOS 16 up to 16.5–16.6.1 depending on the chip. Public sources disagree on whether A15/A16 are covered on 16.5.1–16.6.1, so testers should check their exact build.
 2. Dopamine 3.0 (August 2026) reportedly supports iOS 16.5.1–17.3.1 on these chips. iOS 17.4 and later have no public jailbreak on A14 and newer.
 3. See *iOS 17, 18 and 26 in the simulator* below.
-4. Beta 8 device report (30 October 2026): iPhone 14 Pro Max on iOS 16.4.1, reported stable. The tester did not state the jailbreak or package variant, or report on the specific checks in `docs/TEST-v2.7.2-beta8.md`.
+4. Beta 8 device report (30 October 2026): iPhone 14 Pro Max on iOS 16.4.1, reported stable, and the Control Center close jump confirmed fixed. The tester did not state the jailbreak or package variant, the size setting used, or the other checks in `docs/TEST-v2.7.2-beta8.md`.
 
 The base iPhone 18 and 18e were not released as of October 2026.
 
