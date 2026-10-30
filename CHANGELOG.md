@@ -1,3 +1,10 @@
+## 2.7.2 — Stable bug-fix release
+
+- Stable release of the 2.7.2 betas (the same code as beta 8, versioned 2.7.2) for iOS 16 with Dopamine RootHide or standard Rootless (Dopamine, palera1n).
+- Fixes the Control Center close jump, larger sizes rising off-screen on 20 pt status bars, and the stock battery flashing back during rotation and Control Center transitions. Adds the compact 5G/LTE label, and makes optional features switch off safely when an iOS method is missing.
+- Supported: iOS 16.0–16.7.x on the iPhone XS through 14 series and SE (2nd and 3rd generation) with Dopamine or RootHide, and the iPhone 8, 8 Plus and X with palera1n. Not supported: iOS 17, 18 and 26; iPhone 15 and newer.
+- Tested on an iPhone 14 Pro Max with iOS 16.4.1, and in the iOS 16.4 simulator inside SpringBoard on six iPhone models.
+
 ## 2.7.2 beta 8 — Smooth Control Center closing and safer private API use
 
 - Fix DuoBar moving down and left as Control Center finishes closing. Control Center draws its own status bar and animates it into the Home Screen's place before hiding it. Its DuoBar used an extra 12 pt offset and was clamped inside Control Center's 44 pt bar, so it ended 12 pt right of the Home Screen's DuoBar and up to 7.2 pt higher, then jumped. Measured in the iOS 16.4 simulator SpringBoard: 1.2 pt (iPhone 14 Pro, 100%), 7.2 pt (14 Pro, 140%), 2.7 pt (iPhone 14, 140%). Control Center now uses the Home Screen placement, and the same measurement shows no jump (0.0 pt) on the iPhone 12, 13 mini, 14, 14 Pro and 14 Pro Max at 70%, 100% and 140%. While Control Center is open, the ring now sits where the battery is (12 pt left of beta 7).

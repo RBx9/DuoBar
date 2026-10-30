@@ -19,6 +19,10 @@ on:
         description: Publish the verified packages as a GitHub prerelease (never a full, stable or Sileo release)
         type: boolean
         default: false
+      publish_stable:
+        description: Publish a stable version (no ~beta suffix) as the latest full GitHub release; Sileo is updated separately
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -32,28 +36,36 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       file_version: ${{ steps.version.outputs.file_version }}
       tag: ${{ steps.version.outputs.tag }}
+      stable: ${{ steps.version.outputs.stable }}
       artifact: ${{ steps.version.outputs.artifact }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read and cross-check the beta version
+      - name: Read and cross-check the version
         id: version
         shell: bash
         run: |
           set -euo pipefail
           version="$(sed -n 's/^Version: //p' control)"
           test "$(sed -n 's/^Version: //p' packaging/control.rootless)" = "$version"
-          [[ "$version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)~beta([0-9]+)$ ]]
+          # Either a beta (2.7.2~beta8) or a stable version (2.7.2).
+          [[ "$version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)(~beta([0-9]+))?$ ]]
           base="${BASH_REMATCH[1]}"
-          beta="${BASH_REMATCH[2]}"
-          grep -Fq "DUO_VERSION @\"$base-beta.$beta\"" Shared/DuoMetadata.h
+          beta="${BASH_REMATCH[3]}"
+          if [ -n "$beta" ]; then
+            display="$base-beta.$beta"; file="$base-beta$beta"; tag="v$base-beta.$beta"
+          else
+            display="$base"; file="$base"; tag="v$base"
+          fi
+          grep -Fq "DUO_VERSION @\"$display\"" Shared/DuoMetadata.h
           python3 -I -c 'import plistlib, sys; assert plistlib.load(open(sys.argv[1], "rb"))["CFBundleShortVersionString"] == sys.argv[2]' \
             duobarprefs/Resources/Info.plist "$base"
           {
             echo "version=$version"
-            echo "file_version=$base-beta$beta"
-            echo "tag=v$base-beta.$beta"
-            echo "artifact=DuoBar-$base-beta$beta-${GITHUB_SHA::12}"
+            echo "file_version=$file"
+            echo "tag=$tag"
+            echo "stable=$([ -n "$beta" ] && echo false || echo true)"
+            echo "artifact=DuoBar-$file-${GITHUB_SHA::12}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Check private API safety
@@ -175,11 +187,11 @@ jobs:
           retention-days: 30
 
   publish:
-    name: Publish a GitHub prerelease for a beta tag or manual request
+    name: Publish a GitHub release for a beta tag or manual request
     needs: build
     if: >-
       startsWith(github.ref, 'refs/tags/v2.7.2-beta.') ||
-      (github.event_name == 'workflow_dispatch' && inputs.publish_prerelease)
+      (github.event_name == 'workflow_dispatch' && (inputs.publish_prerelease || inputs.publish_stable))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -187,6 +199,8 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       TAG: ${{ needs.build.outputs.tag }}
       FILE_VERSION: ${{ needs.build.outputs.file_version }}
+      STABLE: ${{ needs.build.outputs.stable }}
+      WANT_STABLE: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_stable }}
     steps:
       - uses: actions/checkout@v4
 
@@ -199,8 +213,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Only beta versions are ever published, and always as prereleases.
-          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]
+          # A stable release needs both a stable version and an explicit
+          # publish_stable request; everything else is a beta prerelease.
+          if [ "$WANT_STABLE" = true ]; then
+            [ "$STABLE" = true ] || { echo "::error::$TAG is a beta; refusing a stable release."; exit 1; }
+            [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            kind=(--latest)
+            title="DuoBar $TAG (RootHide + Rootless)"
+          else
+            [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]
+            kind=(--prerelease --latest=false)
+            title="DuoBar ${TAG%-beta.*} Beta ${TAG##*.} (RootHide + Rootless)"
+          fi
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             # A pushed tag must name the version that was built and verified.
             test "$GITHUB_REF_NAME" = "$TAG"
@@ -216,8 +240,7 @@ jobs:
             exit 1
           fi
           (cd dist && sha256sum -c SHA256SUMS-RootHide.txt SHA256SUMS-Rootless.txt)
-          base="${TAG%-beta.*}"
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" "${target[@]}" --prerelease --latest=false \
-            --title "DuoBar $base Beta ${TAG##*.} (RootHide + Rootless)" --notes-file "$notes" \
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" "${target[@]}" "${kind[@]}" \
+            --title "$title" --notes-file "$notes" \
             "dist/DuoBar_${FILE_VERSION}_RootHide.deb" dist/SHA256SUMS-RootHide.txt \
             "dist/DuoBar_${FILE_VERSION}_Rootless.deb" dist/SHA256SUMS-Rootless.txt

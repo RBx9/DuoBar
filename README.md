@@ -2,7 +2,7 @@
 
 An iPhone Duo-inspired status bar for **iOS 16 with Dopamine RootHide or standard Rootless**. DuoBar brings battery percentage, Wi-Fi strength, and cellular signal together in one circular icon.
 
-Developed by **RBx9** · [Twitter / X: @RedaBuali](https://twitter.com/RedaBuali)
+Developed by **RBx9** · [X: @rmbx09](https://x.com/rmbx09)
 
 ![DuoBar demonstration showing the circular battery ring, percentage, central Wi-Fi symbol, and four cellular dots](docs/demo.png)
 
@@ -19,18 +19,18 @@ The **RBx9 Repo** hosts two distinct iOS 16 packages: **DuoBar (RootHide)** for 
 
 ## Download .deb manually
 
-[**Download DuoBar v2.7.1 for RootHide (.deb)**](https://github.com/RBx9/DuoBar/releases/download/v2.7.1/DuoBar_2.7.1_RootHide.deb)
+[**DuoBar v2.7.2 release (RootHide and Rootless)**](https://github.com/RBx9/DuoBar/releases/tag/v2.7.2) · [Previous stable v2.7.1](https://github.com/RBx9/DuoBar/releases/tag/v2.7.1)
 
-[**Unified v2.7.1 Release (RootHide and Rootless)**](https://github.com/RBx9/DuoBar/releases/tag/v2.7.1) · [Previous stable v0.2.6](https://github.com/RBx9/DuoBar/releases/tag/v0.2.6)
-
-**Standard Rootless edition:** [DuoBar v2.7.1 Rootless .deb](https://github.com/RBx9/DuoBar/releases/download/v2.7.1/DuoBar_2.7.1_Rootless.deb) · [Rootless compatibility and installation](docs/ROOTLESS.md). It uses the separate package ID `local.duobar.rootless` and `iphoneos-arm64`. The package passed build verification but still needs an on-device Rootless test.
+- **Dopamine RootHide:** [DuoBar_2.7.2_RootHide.deb](https://github.com/RBx9/DuoBar/releases/download/v2.7.2/DuoBar_2.7.2_RootHide.deb) (`local.duobar`, `iphoneos-arm64e`)
+- **Standard Rootless (Dopamine, palera1n):** [DuoBar_2.7.2_Rootless.deb](https://github.com/RBx9/DuoBar/releases/download/v2.7.2/DuoBar_2.7.2_Rootless.deb) (`local.duobar.rootless`, `iphoneos-arm64`, arm64 and arm64e slices). See [Rootless compatibility and installation](docs/ROOTLESS.md).
 
 No compiling is needed. The RootHide package uses `iphoneos-arm64e`; standard Rootless uses `iphoneos-arm64`.
 
 ## Features
 
 - Battery percentage above an open circular charge ring.
-- Wi-Fi strength in the center and four cellular signal dots below.
+- Wi-Fi strength in the center, a compact 5G/LTE label, and four cellular signal dots below.
+- Smooth Control Center opening and closing: DuoBar lands exactly in place, with no jump (v2.7.2).
 - Charging indicator, low-battery red, and Low Power Mode yellow.
 - Light and dark status-bar styling, with clear gaps around the cellular dots.
 - A persistent **Enable DuoBar** switch in **Settings → DuoBar**.
@@ -53,13 +53,21 @@ Existing DuoBar installations can be upgraded with the same package. See the [in
 
 ## Compatibility
 
-The supplied download targets **iOS 16.x and Dopamine RootHide**, with tweak injection and PreferenceLoader. PreferenceLoader is declared as a package dependency. This download is not a standard Dopamine/rootless package.
+**Supported: iOS 16.0–16.7.x** on a jailbroken iPhone with tweak injection and PreferenceLoader. Both packages refuse to install on other iOS versions.
 
-This v2.7.1 release changes the version numbering and retains the existing v0.2.7 indicator and Settings features for both editions. Both installers passed automated build checks; on-device confirmation for standard Rootless is still needed. Read the [device checklist](docs/DEVICE-TESTING.md) for further compatibility testing.
+| Jailbreak | iPhones (on an iOS 16 build the jailbreak supports) | Package |
+|---|---|---|
+| Dopamine (Rootless) | iPhone XS, XS Max, XR, 11 series, SE (2nd and 3rd generation), 12 series, 13 series, 14 series | Rootless |
+| Dopamine RootHide | Same iPhones as Dopamine | RootHide |
+| palera1n (Rootless) | iPhone 8, 8 Plus, X | Rootless |
+
+**Not supported:** iOS 17, 18 and 26 on any iPhone; iPhone 15 and newer (no iOS 16, and no public jailbreak on the iPhone 16, 17 and 18); iPad (untested).
+
+**Testing:** v2.7.2 was tested on an iPhone 14 Pro Max with iOS 16.4.1 (as beta 8: stable, Control Center close fix confirmed) and in the iOS 16.4 simulator inside SpringBoard on the iPhone 12, 13 mini, 14, 14 Pro, 14 Pro Max and SE. v2.7.1 Rootless was community-tested on real iPhones. Details, sources and the iOS 17–26 findings are in [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md); the [device checklist](docs/DEVICE-TESTING.md) covers further testing.
 
 ## Build from source
 
-The stable RootHide installer is compiled by a dedicated GitHub Actions workflow with package metadata and transparent Settings icon verification. Rootless is a separately built package using standard Theos and the `iphoneos-arm64` architecture.
+Both installers are compiled by GitHub Actions with the official Theos toolchains (RootHide Theos for RootHide, standard Theos for Rootless) and checked by `scripts/verify-deb.py` before release: metadata, file modes, arm64 and arm64e slices, signatures, linkage and a warning-free build log.
 
 Local builds require Theos, an iOS SDK, and a compatible compiler. RootHide builds require the [RootHide Theos fork](https://github.com/roothide/theos):
 

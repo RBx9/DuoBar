@@ -1,14 +1,14 @@
 Package: local.duobar
 Name: DuoBar
-Version: 2.7.2~beta8
+Version: 2.7.2
 Architecture: iphoneos-arm
 Description: An iPhone Duo-inspired status bar for iOS 16.
  A circular battery ring with a live percentage, compact 5G/LTE and Wi-Fi indicators, and four cellular signal dots.
  Includes charging and Low Power Mode colors, light and dark styling, an adjustable size slider, and an on/off switch in Settings.
- Developed by RBx9. Twitter: @RedaBuali.
+ Developed by RBx9. X: @rmbx09.
 Maintainer: RBx9
 Author: RBx9
-Homepage: https://twitter.com/RedaBuali
+Homepage: https://github.com/RBx9/DuoBar
 Section: Tweaks
 Depends: mobilesubstrate, preferenceloader, firmware (>= 16.0), firmware (<< 17.0)
 Tag: role::tweak
