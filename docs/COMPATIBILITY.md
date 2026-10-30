@@ -44,11 +44,11 @@ The base iPhone 18 and 18e were not released as of October 2026.
 
 **Private API.** Every class and selector DuoBar hooks or reads exists with identical type encodings on iOS 16.4, 17.5, 18.6, 26.2 and 26.5 (49 checks). The Control Center classes exist only in SpringBoard.
 
-**iOS 17, 18 and 26, test build with the version gate raised (never packaged).** SpringBoard did not crash with DuoBar loaded on iOS 17.5, 18.6, 26.2 or 26.5, and Control Center opened and closed normally.
-- iOS 17.5: DuoBar attaches to Control Center's status bar but not to the Home Screen's, which is drawn with classes DuoBar does not recognise.
-- iOS 18.6 and 26.x: DuoBar attaches nowhere; SpringBoard draws its status bars with different classes.
+**iOS 17, 18 and 26, test build with the version gate raised (never packaged).** SpringBoard did not crash with DuoBar loaded on iOS 17.5, 18.6, 26.2 or 26.5.
+- iOS 17.5: Control Center opened and closed normally, and DuoBar attached to Control Center's status bar. It did not attach to the Home Screen's status bar: no battery view was found in any SpringBoard window there, so the Home Screen status bar is drawn somewhere DuoBar does not reach.
+- iOS 18.6 and 26.x: DuoBar attached nowhere, and no status-bar views were found in SpringBoard's windows. The test could not open Control Center (the SpringBoard class it uses no longer exists), so Control Center was not exercised on these versions.
 
-Supporting these versions therefore needs DuoBar to recognise the new status-bar classes. The simulator check now records which classes draw SpringBoard's status bar on each version, as groundwork. On iOS 26 this only matters for A12/A13 iPhones on 26.0–26.0.1, and on iOS 18 only for A12/A13, because newer iPhones have no public jailbreak there.
+Supporting these versions therefore first needs research into where iOS 17 and later draw the Home Screen status bar. On iOS 26 this only matters for A12/A13 iPhones on 26.0–26.0.1, and on iOS 18 only for A12/A13, because newer iPhones have no public jailbreak there.
 
 ## Sources for jailbreak availability
 

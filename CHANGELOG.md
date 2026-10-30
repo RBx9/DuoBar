@@ -4,7 +4,7 @@
 - Install the 5G/LTE, Personal Hotspot, Control Center and status-bar container hooks only when the private class is a view that has every hooked selector. A renamed private API on another firmware now disables just that feature instead of hooking a missing method.
 - Make the iOS 16 gate an explicit constant tied to both packages' firmware dependency.
 - CI: check private API use (`scripts/check-private-api.py`), test the measured Control Center handoff in `tests/layout-test.c`, and run a simulator check that probes DuoBar's private APIs on iOS 16.4, 17.5, 18.6 and 26.x and traces Control Center inside SpringBoard.
-- Still iOS 16 only. In simulators with the gate raised for testing, DuoBar loaded without crashing SpringBoard on iOS 17.5, 18.6 and 26.x, but iOS 17 draws its Home Screen status bar with different classes and iOS 18 and 26 draw all of SpringBoard's status bar with different classes, so DuoBar does not attach there yet. See `docs/COMPATIBILITY.md`.
+- Still iOS 16 only. In simulators with the gate raised for testing, DuoBar loaded without crashing SpringBoard on iOS 17.5, 18.6 and 26.x, but DuoBar does not find the Home Screen status bar there (on iOS 18 and 26 it finds no SpringBoard status bar at all), so it does not attach yet. See `docs/COMPATIBILITY.md`.
 
 ## 2.7.2 beta 7 — Home-button iPhone sizing, safer loading and verified CI packages
 
