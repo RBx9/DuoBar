@@ -149,6 +149,45 @@ static void DuoProbeRegionVisit(UIView *view, UIWindow *window, NSUInteger depth
     for (UIView *subview in view.subviews) DuoProbeRegionVisit(subview, window, depth + 1, count);
 }
 
+// Where a newer iOS draws its status bar: every loaded class whose name
+// mentions a status bar or battery, every scene and window, and every such
+// view in any window, visible or not.
+static void DuoProbeFindViews(UIView *view, UIWindow *window, NSUInteger depth, NSUInteger *count) {
+    if (depth > 60 || *count > 120) return;
+    NSString *name = NSStringFromClass(view.class);
+    if ([name containsString:@"StatusBar"] || [name containsString:@"Battery"]) {
+        (*count)++;
+        DuoProbeLog(@"anyview %@ in %@ rect=%@ hidden=%d alpha=%.2f visible=%d super=%@", name,
+            NSStringFromClass(window.class), DuoProbeRect([view convertRect:view.bounds toView:window]),
+            view.hidden, view.alpha, DuoProbeEffectivelyVisible(view), NSStringFromClass(view.superview.class));
+    }
+    for (UIView *subview in view.subviews) DuoProbeFindViews(subview, window, depth + 1, count);
+}
+
+static void DuoProbeReportInventory(void) {
+    unsigned int total = 0;
+    Class *classes = objc_copyClassList(&total);
+    NSMutableArray<NSString *> *names = [NSMutableArray array];
+    for (unsigned int i = 0; i < total; i++) {
+        NSString *name = NSStringFromClass(classes[i]);
+        if ([name containsString:@"StatusBar"] || [name containsString:@"Battery"]) [names addObject:name];
+    }
+    free(classes);
+    [names sortUsingSelector:@selector(compare:)];
+    DuoProbeLog(@"inventory %lu classes: %@", (unsigned long)names.count, [names componentsJoinedByString:@" "]);
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        DuoProbeLog(@"scene %@ role=%@ state=%ld", NSStringFromClass(scene.class), scene.session.role,
+            (long)scene.activationState);
+    }
+    NSUInteger count = 0;
+    for (UIWindow *window in DuoProbeWindows()) {
+        DuoProbeLog(@"window-list %@ frame=%@ hidden=%d level=%.0f root=%@", NSStringFromClass(window.class),
+            DuoProbeRect(window.frame), window.hidden, window.windowLevel,
+            NSStringFromClass(window.rootViewController.class));
+        DuoProbeFindViews(window, window, 0, &count);
+    }
+}
+
 static void DuoProbeReportStatusRegion(void) {
     for (UIWindow *window in DuoProbeWindows()) {
         if (window.hidden) continue;
@@ -274,6 +313,7 @@ __attribute__((constructor)) static void DuoProbeInit(void) {
         DuoProbeReportAPIs();
         DuoProbeReportLayout();
         if (springBoard) DuoProbeReportStatusRegion();
+        if (springBoard) DuoProbeReportInventory();
         if (springBoard && getenv("DUO_PROBE_CC")) DuoProbeTraceControlCenter();
     });
 }

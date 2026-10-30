@@ -97,6 +97,9 @@ while IFS=$'\t' read -r runtime version device <&3; do
             if [ "$size" = 1.0 ] && ! grep -qx "$version" "$dir/regions-printed" 2>/dev/null; then
                 echo "== Status-bar views in SpringBoard: iOS $version $device"
                 grep -E "DUOPROBE .* region " "$sbout" | sed 's/^DUOPROBE \[[^]]*\] //' | head -160
+                { echo "== Status-bar inventory in SpringBoard: iOS $version $device"
+                  grep -E "DUOPROBE .* (inventory|scene|window-list|anyview) " "$sbout" |
+                      sed 's/^DUOPROBE \[[^]]*\] //' | head -200; } | tee -a "$dir/inventory.txt"
                 echo "$version" >> "$dir/regions-printed"
             fi
         else
@@ -108,6 +111,11 @@ while IFS=$'\t' read -r runtime version device <&3; do
     xcrun simctl shutdown "$udid" >/dev/null 2>&1
     xcrun simctl delete "$udid" >/dev/null 2>&1
 done 3< "$dir/plan.tsv"
+
+# Repeated at the end so it survives tools that only fetch a log's tail.
+echo "DUOINVENTORY-BEGIN"
+cat "$dir/inventory.txt" 2>/dev/null
+echo "DUOINVENTORY-END"
 
 echo "DUOSUMMARY-BEGIN"
 python3 -I "$here/summary.py" "$shots"
