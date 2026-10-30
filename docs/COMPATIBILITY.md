@@ -17,17 +17,18 @@ There is no iOS 19–25: Apple went from iOS 18 to iOS 26.
 |---|---|---|---|---|
 | 12, 12 mini, 12 Pro, 12 Pro Max (A14) | **Supported** where a jailbreak covers the build¹. Package-verified; simulator-tested (12 on 16.4). | Jailbreak reported for 17.0–17.3.1². DuoBar not enabled³. | No public jailbreak | No public jailbreak |
 | 13, 13 mini, 13 Pro, 13 Pro Max (A15) | **Supported** where a jailbreak covers the build¹. Package-verified; simulator-tested (13 mini on 16.4). | Jailbreak reported for 17.0–17.3.1². DuoBar not enabled³. | No public jailbreak | No public jailbreak |
-| 14, 14 Plus (A15), 14 Pro, 14 Pro Max (A16) | **Supported** where a jailbreak covers the build¹. Package-verified; simulator-tested (14, 14 Pro, 14 Pro Max on 16.4). | Jailbreak reported for 17.0–17.3.1². DuoBar not enabled³. | No public jailbreak | No public jailbreak |
+| 14, 14 Plus (A15), 14 Pro, 14 Pro Max (A16) | **Supported** where a jailbreak covers the build¹. Package-verified; simulator-tested (14, 14 Pro, 14 Pro Max on 16.4); **device-tested: 14 Pro Max on 16.4.1**⁴. | Jailbreak reported for 17.0–17.3.1². DuoBar not enabled³. | No public jailbreak | No public jailbreak |
 | 15, 15 Plus (A16), 15 Pro, 15 Pro Max (A17 Pro) | Unavailable: shipped with iOS 17 | Jailbreak reported for 17.0–17.3.1². DuoBar not enabled³. | No public jailbreak | No public jailbreak |
 | 16, 16 Plus, 16 Pro, 16 Pro Max, 16e (A18) | Unavailable | Unavailable | No public jailbreak | No public jailbreak |
 | 17, Air, 17 Pro, 17 Pro Max, 17e (A19) | Unavailable | Unavailable | Unavailable | No public jailbreak |
 | 18 Pro, 18 Pro Max (A20 Pro) | Unavailable: shipped with iOS 27 | Unavailable | Unavailable | Unavailable |
 
-No iPhone 12–18 model has been device-tested by the developer for beta 8. Stable v2.7.1 Rootless was community-tested on iPhones that were not identified.
+No other iPhone 12–18 model has a beta 8 device report yet. Stable v2.7.1 Rootless was community-tested on iPhones that were not identified.
 
 1. Dopamine and Dopamine RootHide cover iOS 16 up to 16.5–16.6.1 depending on the chip. Public sources disagree on whether A15/A16 are covered on 16.5.1–16.6.1, so testers should check their exact build.
 2. Dopamine 3.0 (August 2026) reportedly supports iOS 16.5.1–17.3.1 on these chips. iOS 17.4 and later have no public jailbreak on A14 and newer.
 3. See *iOS 17, 18 and 26 in the simulator* below.
+4. Beta 8 device report (30 October 2026): iPhone 14 Pro Max on iOS 16.4.1, reported stable. The tester did not state the jailbreak or package variant, or report on the specific checks in `docs/TEST-v2.7.2-beta8.md`.
 
 The base iPhone 18 and 18e were not released as of October 2026.
 
