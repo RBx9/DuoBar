@@ -35,7 +35,8 @@ The base iPhone 18 and 18e were not released as of October 2026.
 
 | iPhone | Jailbreak | DuoBar |
 |---|---|---|
-| XS, XS Max, XR, 11, 11 Pro, SE 2 (A12/A13) | Dopamine/RootHide on iOS 16; Dopamine 3.0 reportedly also iOS 17, 18 up to 18.7.1, and 26.0–26.0.1 | iOS 16 supported. Not enabled on 17, 18 or 26. |
+| XS, XS Max, XR (A12) | Dopamine/RootHide on iOS 16; Dopamine 3.0 reportedly also iOS 17 and 18 up to 18.7.1. These iPhones cannot install iOS 26. | iOS 16 supported. Not enabled on 17 or 18. |
+| 11, 11 Pro, 11 Pro Max, SE 2 (A13) | Dopamine/RootHide on iOS 16; Dopamine 3.0 reportedly also iOS 17, 18 up to 18.7.1, and 26.0–26.0.1 | iOS 16 supported. Not enabled on 17, 18 or 26. |
 | 8, 8 Plus, X (A11) | palera1n (Rootless) on iOS 16 | iOS 16 supported via the Rootless package's arm64 slice. An iPhone 8 Plus tester reported the large-size clipping fixed in beta 7; the fix was simulator-tested on a 20 pt status bar (iPhone SE, iOS 16.4). |
 
 ## Simulator results (beta 8 code)
@@ -48,7 +49,7 @@ The base iPhone 18 and 18e were not released as of October 2026.
 - iOS 17.5: Control Center opened and closed normally, and DuoBar attached to Control Center's status bar. It did not attach to the Home Screen's status bar: no battery view was found in any SpringBoard window there, so the Home Screen status bar is drawn somewhere DuoBar does not reach.
 - iOS 18.6 and 26.x: DuoBar attached nowhere, and no status-bar views were found in SpringBoard's windows. The test could not open Control Center (the SpringBoard class it uses no longer exists), so Control Center was not exercised on these versions.
 
-Supporting these versions therefore first needs research into where iOS 17 and later draw the Home Screen status bar. On iOS 26 this only matters for A12/A13 iPhones on 26.0–26.0.1, and on iOS 18 only for A12/A13, because newer iPhones have no public jailbreak there.
+Supporting these versions therefore first needs research into where iOS 17 and later draw the Home Screen status bar. On iOS 18 this only matters for the iPhone XS, XR, 11 and SE 2 (up to 18.7.1), and on iOS 26 only for the iPhone 11 family and SE 2 on 26.0–26.0.1 (the XS and XR cannot install iOS 26), because newer iPhones have no public jailbreak there.
 
 ## Sources for jailbreak availability
 
