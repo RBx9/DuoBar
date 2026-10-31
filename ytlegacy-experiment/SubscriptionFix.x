@@ -76,11 +76,14 @@ static YTICommand *RBXFindSubscribeCommand(id value, NSHashTable *seen, NSUInteg
     return nil;
 }
 
+extern void RBXProbeLog(NSString *message);
+
 static BOOL RBXTrySubscribeTap(ELMTouchCommandPropertiesHandler *handler) {
     if (!isLegacy || ![realAppVersion isEqualToString:@"19.20.2"]) return NO;
     ELMNodeController *controller = RBXSafeKVC(handler, @"_controller");
-    if (![controller isKindOfClass:%c(ELMNodeController)] ||
-        !RBXIsSubscribeTap(controller)) return NO;
+    if (![controller isKindOfClass:%c(ELMNodeController)]) return NO;
+    if (!RBXIsSubscribeTap(controller)) return NO;
+    RBXProbeLog(@"Legacy tap handler recognized Subscribe node");
     YTELMContext *context = RBXSafeKVC(handler, @"_context");
     id firstResponder = [context parentResponder];
     if (!firstResponder) return NO;
@@ -90,6 +93,7 @@ static BOOL RBXTrySubscribeTap(ELMTouchCommandPropertiesHandler *handler) {
     YTICommand *command = RBXFindSubscribeCommand(nodeElement, seen, 0);
     if (!command) command = RBXFindSubscribeCommand(entry, seen, 0);
     if (!command) {
+        RBXProbeLog(@"Legacy tap: no native Subscribe command located");
         HBLogDebug(@"RBx9 SubscribeFix: tap recognized, no native endpoint found");
         return NO;
     }
@@ -100,6 +104,7 @@ static BOOL RBXTrySubscribeTap(ELMTouchCommandPropertiesHandler *handler) {
     if (!event) return NO;
     HBLogDebug(@"RBx9 SubscribeFix: dispatching existing subscribe command");
     [event send];
+    RBXProbeLog(@"Legacy tap: dispatched existing Subscribe command");
     return YES;
 }
 
