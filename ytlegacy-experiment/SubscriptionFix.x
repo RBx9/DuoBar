@@ -17,9 +17,9 @@ static id RBXSafeKVC(id object, NSString *key) {
 
 static BOOL RBXIsSubscribeTap(ELMNodeController *controller) {
     if (!controller) return NO;
-    NSString *label = [[controller.node.view.accessibilityLabel ?: @""] lowercaseString];
-    NSString *identifier = [[controller.node.accessibilityIdentifier ?: @""] lowercaseString];
-    NSString *key = [[controller.key ?: @""] lowercaseString];
+    NSString *label = [(controller.node.view.accessibilityLabel ?: @"") lowercaseString];
+    NSString *identifier = [(controller.node.accessibilityIdentifier ?: @"") lowercaseString];
+    NSString *key = [(controller.key ?: @"") lowercaseString];
     BOOL matchingLabel = [label isEqualToString:@"subscribe"] ||
         [label hasPrefix:@"subscribe to "] ||
         [label isEqualToString:@"اشترك"] ||
