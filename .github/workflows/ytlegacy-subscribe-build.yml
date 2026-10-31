@@ -34,6 +34,7 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/PoomSmart/YouTubeLegacy.git upstream
           cp ytlegacy-experiment/SubscriptionFix.x upstream/SubscriptionFix.x
+          cp ytlegacy-experiment/SubscribeProbe.x upstream/SubscribeProbe.x
           python3 - <<'PY'
           from pathlib import Path
           p=Path('upstream/Makefile')
@@ -41,13 +42,14 @@ jobs:
           lines=s.splitlines()
           for i,l in enumerate(lines):
               if l.startswith('$(TWEAK_NAME)_FILES = '):
-                  lines[i]+=' SubscriptionFix.x'
+                  lines[i]+=' SubscriptionFix.x SubscribeProbe.x'
                   break
           else:
               raise RuntimeError('Source layout changed: no TWEAK_NAME_FILES')
           p.write_text('\n'.join(lines)+'\n')
           PY
           cat upstream/Makefile
+          sed -i.bak "s/^Version:.*/Version: 1.12.1+rbx9probe1/" upstream/control
       - name: Build rootful package for iOS 14
         run: |
           gmake -C upstream clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME= TARGET=iphone:clang:16.5:11.0
@@ -58,6 +60,6 @@ jobs:
       - name: Save .deb
         uses: actions/upload-artifact@v4
         with:
-          name: YouTubeLegacy-Subscribe-Experimental-iOS14-rootful
+          name: YouTubeLegacy-Subscribe-Diagnostic-iOS14-rootful
           path: upstream/packages/*.deb
           if-no-files-found: error
