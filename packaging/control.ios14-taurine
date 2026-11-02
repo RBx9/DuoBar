@@ -1,0 +1,14 @@
+Package: local.duobar.ios14
+Name: DuoBar (iOS 14 Taurine Beta)
+Version: 2.7.2~ios14beta1
+Architecture: iphoneos-arm
+Maintainer: RBx9
+Author: RBx9
+Section: Tweaks
+Priority: optional
+Depends: preferenceloader, firmware (>= 14.0), firmware (<< 15.0)
+Conflicts: local.duobar, local.duobar.rootless
+Homepage: https://github.com/RBx9/DuoBar
+Description: Experimental DuoBar status-bar battery ring for iOS 14 rootful jailbreaks such as Taurine.
+ Uses a guarded, SpringBoard-only status-bar hook and preserves native Wi-Fi and cellular icons while testing compatibility.
+ Not tested on physical iOS 14.3 yet. Do not install on iOS 16.
