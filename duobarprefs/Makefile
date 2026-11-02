@@ -1,6 +1,13 @@
+ifeq ($(DUO_IOS14_ROOTFUL),1)
+# Taurine iOS 14.3: rootful uses iphoneos-arm and original /Library paths.
+ARCHS = arm64
+TARGET = iphone:clang:14.5:14.0
+THEOS_PACKAGE_SCHEME =
+else
 ARCHS = arm64 arm64e
 TARGET = iphone:clang:latest:16.0
 THEOS_PACKAGE_SCHEME ?= roothide
+endif
 
 include $(THEOS)/makefiles/common.mk
 
