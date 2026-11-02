@@ -1,0 +1,81 @@
+name: Verify DuoBar iOS14 Taurine Rootful (Unpublished)
+
+on:
+  push:
+    branches: [feature/ios14-taurine-rootful-dev-no-publish]
+    paths:
+      - 'Sources/Tweak14.xm'
+      - 'Sources/DuoGlyphView.*'
+      - 'Makefile'
+      - 'duobarprefs/**'
+      - 'packaging/control.ios14-taurine'
+      - 'packaging/DuoBar14.plist'
+      - '.github/workflows/verify-ios14-taurine-unpublished.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-rootful-ios14:
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Theos build tools
+        run: brew install make ldid dpkg gnu-tar xz rsync
+      - name: Configure Theos
+        run: |
+          echo "THEOS=$RUNNER_TEMP/duobar-theos" >> "$GITHUB_ENV"
+          echo "$(brew --prefix gnu-tar)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Fetch official Theos and iOS 14.5 SDK
+        run: |
+          set -euo pipefail
+          git clone --recursive --depth 1 https://github.com/theos/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/duobar-sdks"
+          git -C "$RUNNER_TEMP/duobar-sdks" sparse-checkout set iPhoneOS14.5.sdk
+          mkdir -p "$THEOS/sdks"
+          cp -R "$RUNNER_TEMP/duobar-sdks/iPhoneOS14.5.sdk" "$THEOS/sdks/"
+      - name: Apply rootful-only metadata in the ephemeral runner
+        run: |
+          cp packaging/control.ios14-taurine control
+          cp packaging/DuoBar14.plist DuoBar.plist
+      - name: Build iOS 14 rootful tweak and Settings bundle (no release)
+        shell: bash
+        run: |
+          set -euo pipefail
+          DUO_IOS14_ROOTFUL=1 gmake clean package FINALPACKAGE=1
+          test "$(find packages -maxdepth 1 -name '*.deb' | wc -l | tr -d ' ')" -eq 1
+          deb="$(find packages -maxdepth 1 -name '*.deb' | head -n1)"
+          dpkg-deb --info "$deb"
+          dpkg-deb --contents "$deb" | tee "$RUNNER_TEMP/package-contents.txt"
+          test "$(dpkg-deb -f "$deb" Package)" = "local.duobar.ios14"
+          test "$(dpkg-deb -f "$deb" Architecture)" = "iphoneos-arm"
+          test "$(dpkg-deb -f "$deb" Version)" = "2.7.2~ios14beta1"
+          grep -Fq 'Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib' "$RUNNER_TEMP/package-contents.txt"
+          grep -Fq 'Library/MobileSubstrate/DynamicLibraries/DuoBar.plist' "$RUNNER_TEMP/package-contents.txt"
+          grep -Fq 'Library/PreferenceBundles/DuoBarPrefs.bundle/' "$RUNNER_TEMP/package-contents.txt"
+          if grep -Fq '/var/jb/' "$RUNNER_TEMP/package-contents.txt"; then
+            echo "Rootless payload leaked into rootful package" >&2
+            exit 1
+          fi
+          dpkg-deb --extract "$deb" "$RUNNER_TEMP/rootful-extracted"
+          python3 - <<'PY'
+          from pathlib import Path
+          import plistlib
+          import os
+          root=Path(os.environ['RUNNER_TEMP'])/'rootful-extracted'
+          info=root/'Library/MobileSubstrate/DynamicLibraries/DuoBar.plist'
+          value=plistlib.loads(info.read_bytes())
+          assert value['Filter']['Bundles']==['com.apple.springboard']
+          dylib=root/'Library/MobileSubstrate/DynamicLibraries/DuoBar.dylib'
+          assert dylib.stat().st_size>1000
+          print('PASS: iphoneos-arm, SpringBoard-only filter, rootful installation paths')
+          PY
+      - name: Save beta test build as Actions artifact only
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuoBar-iOS14-Taurine-rootful-UNRELEASED
+          path: packages/*.deb
+          if-no-files-found: error
+          retention-days: 7
