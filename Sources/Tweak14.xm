@@ -237,11 +237,11 @@ static void Duo14PreferenceChanged(CFNotificationCenterRef center,void *observer
 %hook _UIStatusBar
 - (void)layoutSubviews {
     %orig;
-    Duo14ScheduleHost(self);
+    Duo14ScheduleHost((UIView *)(id)self);
 }
 - (void)didMoveToWindow {
     %orig;
-    Duo14ScheduleHost(self);
+    Duo14ScheduleHost((UIView *)(id)self);
 }
 %end
 %end
@@ -252,11 +252,11 @@ static void Duo14PreferenceChanged(CFNotificationCenterRef center,void *observer
 %hook UIStatusBar
 - (void)layoutSubviews {
     %orig;
-    Duo14ScheduleHost(self);
+    Duo14ScheduleHost((UIView *)(id)self);
 }
 - (void)didMoveToWindow {
     %orig;
-    Duo14ScheduleHost(self);
+    Duo14ScheduleHost((UIView *)(id)self);
 }
 %end
 %end
