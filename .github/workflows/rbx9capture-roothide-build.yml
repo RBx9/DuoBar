@@ -20,7 +20,7 @@ jobs:
           test -f capture-src/Makefile
           test -f capture-src/app/RBXCaptureViewController.m
       - name: Install RootHide Theos SDK and toolchain
-        uses: iossxx/theos-action@v1
+        uses: iossxx/theos-action@main
         with:
           theos-src: https://github.com/roothide/theos
           theos-sdks: https://github.com/theos/sdks
