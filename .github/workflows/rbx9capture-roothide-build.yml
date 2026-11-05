@@ -1,0 +1,61 @@
+name: RBx9 Capture RootHide iOS 16.4.1 Build
+on:
+  push:
+    branches:
+      - build/rbx9capture-roothide-1641
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout isolated build branch
+        uses: actions/checkout@v4
+      - name: Extract RBx9 Capture source
+        run: |
+          mkdir -p capture-src
+          tar -xJf rbx9capture-build.tar.xz -C capture-src
+          test -f capture-src/Makefile
+          test -f capture-src/app/RBXCaptureViewController.m
+      - name: Install RootHide Theos SDK and toolchain
+        uses: iossxx/theos-action@v1
+        with:
+          theos-src: https://github.com/roothide/theos
+          theos-sdks: https://github.com/theos/sdks
+      - name: Compile and package RootHide DEB
+        working-directory: capture-src
+        run: |
+          make clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide
+      - name: Verify that DEB contains compiled iOS binaries
+        working-directory: capture-src
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          debs=(packages/*iphoneos-arm64e*.deb)
+          if [[ ${#debs[@]} -ne 1 ]]; then
+            echo "Expected one compiled RootHide DEB; found ${#debs[@]}"
+            exit 1
+          fi
+          deb="${debs[0]}"
+          dpkg-deb -f "$deb" Architecture
+          [[ "$(dpkg-deb -f "$deb" Architecture)" == "iphoneos-arm64e" ]]
+          dpkg-deb -c "$deb" | tee /tmp/rbx9-package-files.txt
+          grep -q 'RBx9Capture.app/RBx9Capture' /tmp/rbx9-package-files.txt
+          grep -q 'RBx9CaptureLauncher.dylib' /tmp/rbx9-package-files.txt
+          mkdir -p /tmp/rbx9-deb-contents
+          dpkg-deb -x "$deb" /tmp/rbx9-deb-contents
+          app="$(find /tmp/rbx9-deb-contents -name RBx9Capture -type f | head -1)"
+          tweak="$(find /tmp/rbx9-deb-contents -name RBx9CaptureLauncher.dylib -type f | head -1)"
+          [[ -n "$app" && -n "$tweak" ]]
+          file "$app" "$tweak"
+          file "$app" "$tweak" | grep -q 'Mach-O'
+          echo "Verified package: $deb"
+      - name: Upload installable RootHide DEB
+        uses: actions/upload-artifact@v4
+        with:
+          name: RBx9Capture-RootHide-iOS16.4.1
+          path: capture-src/packages/*iphoneos-arm64e*.deb
+          if-no-files-found: error
