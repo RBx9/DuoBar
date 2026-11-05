@@ -40,18 +40,22 @@ jobs:
             exit 1
           fi
           deb="${debs[0]}"
-          dpkg-deb -f "$deb" Architecture
-          [[ "$(dpkg-deb -f "$deb" Architecture)" == "iphoneos-arm64e" ]]
-          dpkg-deb -c "$deb" | tee /tmp/rbx9-package-files.txt
-          grep -q 'RBx9Capture.app/RBx9Capture' /tmp/rbx9-package-files.txt
-          grep -q 'RBx9CaptureLauncher.dylib' /tmp/rbx9-package-files.txt
-          mkdir -p /tmp/rbx9-deb-contents
-          dpkg-deb -x "$deb" /tmp/rbx9-deb-contents
+          ar -t "$deb"
+          controlmember="$(ar -t "$deb" | grep '^control.tar' | head -1)"
+          datamember="$(ar -t "$deb" | grep '^data.tar' | head -1)"
+          [[ -n "$controlmember" && -n "$datamember" ]]
+          mkdir -p /tmp/rbx9-deb-control /tmp/rbx9-deb-contents
+          ar -p "$deb" "$controlmember" > "/tmp/$controlmember"
+          ar -p "$deb" "$datamember" > "/tmp/$datamember"
+          tar -xf "/tmp/$controlmember" -C /tmp/rbx9-deb-control
+          tar -xf "/tmp/$datamember" -C /tmp/rbx9-deb-contents
+          grep -q '^Architecture: iphoneos-arm64e$' /tmp/rbx9-deb-control/control
           app="$(find /tmp/rbx9-deb-contents -name RBx9Capture -type f | head -1)"
           tweak="$(find /tmp/rbx9-deb-contents -name RBx9CaptureLauncher.dylib -type f | head -1)"
           [[ -n "$app" && -n "$tweak" ]]
           file "$app" "$tweak"
-          file "$app" "$tweak" | grep -q 'Mach-O'
+          file "$app" | grep -q 'Mach-O'
+          file "$tweak" | grep -q 'Mach-O'
           echo "Verified package: $deb"
       - name: Upload installable RootHide DEB
         uses: actions/upload-artifact@v4
