@@ -80,12 +80,29 @@ static BOOL DuoReadEnabled(void) {
 
 // Control Center uses a separate _UIStatusBarStringView for the large "86%" text.
 // This view is not one of the native battery/signal glyphs covered below.
+// The percent sign's side and spacing follow the locale: "86%", "%86" (Turkish),
+// "86 %" (French, narrow no-break space), "٨٦٪" (Arabic).
 static BOOL DuoIsBatteryPercentage(NSString *text) {
     if (![text isKindOfClass:NSString.class]) return NO;
-    NSString *trimmed = [text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-    if (![trimmed hasSuffix:@"%"] || trimmed.length < 2 || trimmed.length > 4) return NO;
-    NSString *digits = [trimmed substringToIndex:trimmed.length - 1];
-    return [digits rangeOfCharacterFromSet:NSCharacterSet.decimalDigitCharacterSet.invertedSet].location == NSNotFound;
+    NSCharacterSet *ignored = NSCharacterSet.whitespaceAndNewlineCharacterSet;
+    NSUInteger signs = 0, digits = 0;
+    BOOL signFirst = NO;
+    for (NSUInteger i = 0; i < text.length; i++) {
+        unichar c = [text characterAtIndex:i];
+        // Skip spaces and bidirectional marks (LRM, RLM, ALM, isolates).
+        if ([ignored characterIsMember:c] || c == 0x200E || c == 0x200F || c == 0x061C ||
+            (c >= 0x2066 && c <= 0x2069)) continue;
+        if (c == '%' || c == 0xFF05 || c == 0x066A) {
+            if (signs++ == 0) signFirst = (digits == 0);
+        } else if ([NSCharacterSet.decimalDigitCharacterSet characterIsMember:c]) {
+            // Digits on both sides of the sign are not a percentage.
+            if (signs && !signFirst) return NO;
+            digits++;
+        } else {
+            return NO;
+        }
+    }
+    return signs == 1 && digits >= 1 && digits <= 3;
 }
 
 // iOS may expose the carrier technology as a compact status-bar text view.

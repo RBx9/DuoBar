@@ -1,3 +1,8 @@
+## 2.7.3 beta 1 — Hide Control Center's percentage in every language
+
+- Fix the stock battery percentage staying visible next to DuoBar in Control Center when iOS writes it with the % sign first, as in Turkish ("%33"), or with a space, as in French ("33 %"). DuoBar only recognised "33%", so in those languages the text overlapped the ring. Reported on an iPhone 8 Plus (palera1n).
+- Nothing else changes from 2.7.2.
+
 ## 2.7.2 — Stable bug-fix release
 
 - Stable release of the 2.7.2 betas (the same code as beta 8, versioned 2.7.2) for iOS 16 with Dopamine RootHide or standard Rootless (Dopamine, palera1n).
