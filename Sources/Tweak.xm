@@ -481,6 +481,12 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 @property(nonatomic, strong) DuoGlyphView *glyph;
 @property(nonatomic) BOOL updating;
 @property(nonatomic) BOOL updateScheduled;
+// Where the native battery last was in this container. While UIKit rebuilds
+// the status bar (the red screen-recording bar, rotation) the battery view can
+// be missing for a layout pass; without this the ring would jump to the Wi-Fi
+// icon's edge and back.
+@property(nonatomic) CGRect lastBatteryRect;
+@property(nonatomic) CGFloat lastBatteryContainerWidth;
 - (void)scheduleUpdate;
 - (void)update;
 @end
@@ -640,20 +646,31 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
     // We don't modify the container's clipping policy or native UIKit views.
     // The overhang is limited to visible space (see DuoLayout.h), which keeps
     // an enlarged glyph on screen under a 20 pt Home-button status bar.
+    CGRect bounds = container.bounds;
     CGRect batteryRect = battery
         ? [battery convertRect:battery.bounds toView:container]
         : area;
-    CGRect bounds = container.bounds;
+    CGFloat areaMaxX = CGRectGetMaxX(area);
+    if (battery) {
+        if (!CGRectIsEmpty(batteryRect) && CGRectGetWidth(bounds) > 0) { self.lastBatteryRect = batteryRect; self.lastBatteryContainerWidth = CGRectGetWidth(bounds); }
+    } else if (!CGRectIsEmpty(self.lastBatteryRect) &&
+               fabs(self.lastBatteryContainerWidth - CGRectGetWidth(bounds)) < 0.5 &&
+               CGRectGetMaxX(self.lastBatteryRect) <= CGRectGetMaxX(bounds) &&
+               CGRectGetMaxY(self.lastBatteryRect) <= CGRectGetMaxY(bounds)) {
+        // Stay on the battery's side and height until the real one is back.
+        batteryRect = self.lastBatteryRect;
+        areaMaxX = MAX(areaMaxX, CGRectGetMaxX(self.lastBatteryRect));
+    }
     CGRect visible = DuoVisibleRect(container);
     BOOL inControlCenter = DuoControlCenterVisible(container);
     // In Control Center, use the Home Screen's placement so the DuoBar that
     // Control Center animates closed lands exactly on the Home Screen's one.
     DuoGlyphFrame frame = inControlCenter
         ? DuoComputeControlCenterGlyphFrame(CGRectGetMinX(bounds), CGRectGetMaxX(bounds),
-            CGRectGetHeight(bounds), CGRectGetMaxX(area), CGRectGetMidY(batteryRect),
+            CGRectGetHeight(bounds), areaMaxX, CGRectGetMidY(batteryRect),
             DuoSizeScale, CGRectGetMinY(visible), CGRectGetMaxY(visible))
         : DuoComputeGlyphFrame(CGRectGetMinX(bounds), CGRectGetMinY(bounds),
-            CGRectGetMaxX(bounds), CGRectGetMaxY(bounds), CGRectGetMaxX(area), CGRectGetMidY(batteryRect),
+            CGRectGetMaxX(bounds), CGRectGetMaxY(bounds), areaMaxX, CGRectGetMidY(batteryRect),
             DuoSizeScale, CGRectGetMinY(visible), CGRectGetMaxY(visible));
     CGFloat x = frame.x, y = frame.y, width = frame.width, height = frame.height;
 

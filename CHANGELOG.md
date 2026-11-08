@@ -1,3 +1,8 @@
+## 2.7.3 beta 2 — Steadier ring while the status bar is rebuilt
+
+- Stop DuoBar jumping left and right on iPhones with a Home button while the red screen-recording bar (and other status-bar rebuilds) are showing. When UIKit briefly dropped the native battery from a layout pass, DuoBar anchored to the Wi-Fi icon's edge instead and snapped back a moment later. It now stays at the battery's last position until the battery is back. Seen on an iPhone 8 Plus (palera1n).
+- Includes the 2.7.3 beta 1 fix for Control Center's percentage text in Turkish and French.
+
 ## 2.7.3 beta 1 — Hide Control Center's percentage in every language
 
 - Fix the stock battery percentage staying visible next to DuoBar in Control Center when iOS writes it with the % sign first, as in Turkish ("%33"), or with a space, as in French ("33 %"). DuoBar only recognised "33%", so in those languages the text overlapped the ring. Reported on an iPhone 8 Plus (palera1n).
