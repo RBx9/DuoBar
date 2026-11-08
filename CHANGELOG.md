@@ -1,3 +1,8 @@
+## 2.7.3 beta 3 — Steady rotation-lock icon in Control Center
+
+- Stop the rotation-lock icon flickering beside DuoBar in Control Center. DuoBar re-searched for the icon on every layout pass and, whenever that pass missed it, left it at its original place on top of the ring until the next pass moved it again. It now remembers the icon and keeps it beside the ring.
+- Includes beta 2 (ring no longer jumps sideways during the red recording bar) and beta 1 (Control Center percentage in Turkish and French).
+
 ## 2.7.3 beta 2 — Steadier ring while the status bar is rebuilt
 
 - Stop DuoBar jumping left and right on iPhones with a Home button while the red screen-recording bar (and other status-bar rebuilds) are showing. When UIKit briefly dropped the native battery from a layout pass, DuoBar anchored to the Wi-Fi icon's edge instead and snapped back a moment later. It now stays at the battery's last position until the battery is back. Seen on an iPhone 8 Plus (palera1n).

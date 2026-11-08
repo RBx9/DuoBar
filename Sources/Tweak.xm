@@ -486,6 +486,9 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
 // be missing for a layout pass; without this the ring would jump to the Wi-Fi
 // icon's edge and back.
 @property(nonatomic) CGRect lastBatteryRect;
+// The orientation-lock icon DuoBar last moved aside. Reused across layout passes
+// so it is not dropped, and left in place, when a pass fails to find it again.
+@property(nonatomic, weak) UIView *rotationIndicator;
 @property(nonatomic) CGFloat lastBatteryContainerWidth;
 - (void)scheduleUpdate;
 - (void)update;
@@ -699,6 +702,13 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
         CGRect ring = [self.glyph convertRect:self.glyph.bounds toView:window];
         UIView *chosen = nil;
         CGFloat bestScore = CGFLOAT_MAX;
+        UIView *remembered = self.rotationIndicator;
+        if (remembered && remembered.window == window && !remembered.hidden && remembered.alpha > 0.01 &&
+            ![remembered isDescendantOfView:self.glyph]) {
+            CGRect rr = [remembered convertRect:remembered.bounds toView:window];
+            if (!CGRectIsEmpty(rr) && CGRectGetWidth(rr) >= 4 && CGRectGetWidth(rr) <= 38 &&
+                CGRectGetHeight(rr) >= 4 && CGRectGetHeight(rr) <= 38) chosen = remembered;
+        }
         for (NSInteger pass = 0; pass < 2 && !chosen; pass++) {
             UIView *root = pass == 0 ? container : window;
             if (pass == 1 && root == container) break;
@@ -753,6 +763,7 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
                 }
             }
         }
+        self.rotationIndicator = chosen;
         if (chosen) {
             CGRect r = [chosen convertRect:chosen.bounds toView:window];
             CGFloat desiredRight = CGRectGetMinX(ring) - 10.0;
