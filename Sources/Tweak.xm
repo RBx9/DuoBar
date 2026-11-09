@@ -53,6 +53,8 @@ static Class DuoBatteryClass, DuoWifiClass, DuoCellularClass, DuoForegroundClass
 @class DuoStatusController;
 static void DuoScanHotspotIndicators(UIView *container);
 static BOOL DuoEnabled = YES;
+// The last single-row Home Screen/app DuoBar in SpringBoard, in window coordinates.
+static CGRect DuoHomeGlyphRect;
 static CGFloat DuoSizeScale = 1.0;
 static void DuoRegisterIcon(UIView *icon);
 static void DuoRegisterNetworkView(_UIStatusBarStringView *view);
@@ -675,6 +677,18 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
         : DuoComputeGlyphFrame(CGRectGetMinX(bounds), CGRectGetMinY(bounds),
             CGRectGetMaxX(bounds), CGRectGetMaxY(bounds), areaMaxX, CGRectGetMidY(batteryRect),
             DuoSizeScale, CGRectGetMinY(visible), CGRectGetMaxY(visible));
+    if (DuoSpringBoard && container.window) {
+        if (!inControlCenter && CGRectGetHeight(bounds) < 30.0) {
+            // Home-button iPhones: remember the Home Screen's DuoBar for Control Center.
+            DuoHomeGlyphRect = [container convertRect:CGRectMake(frame.x, frame.y, frame.width, frame.height)
+                                               toView:container.window];
+        } else if (inControlCenter && !CGRectIsEmpty(DuoHomeGlyphRect)) {
+            CGPoint home = [container convertPoint:DuoHomeGlyphRect.origin fromView:container.window];
+            frame = DuoAdoptHomeGlyphFrame(frame, home.x, CGRectGetWidth(DuoHomeGlyphRect),
+                CGRectGetHeight(DuoHomeGlyphRect), CGRectGetMinX(bounds), CGRectGetMaxX(bounds),
+                CGRectGetMidY(batteryRect), CGRectGetMinY(visible), CGRectGetMaxY(visible));
+        }
+    }
     CGFloat x = frame.x, y = frame.y, width = frame.width, height = frame.height;
 
     [CATransaction begin];

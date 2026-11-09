@@ -117,6 +117,24 @@ int main(void) {
     DuoGlyphFrame unknownCC = DuoComputeControlCenterGlyphFrame(0, 393, 44, 360, 29.2, 1.0, NAN, NAN);
     CHECK(fabs(unknownCC.y - (29.2 - 15.0)) < 1e-9, "Control Center DuoBar not centred on the battery");
 
+    // iPhone 8 Plus, 100%: the simulator measured Control Center's DuoBar at x 346.9, 29.5 pt tall and the
+    // Home Screen's at x 391.7, 18 pt tall. Control Center now adopts the Home Screen's size and x.
+    DuoGlyphFrame ccPlus = {346.9, 14.0, 27.8, 29.5};
+    DuoGlyphFrame adopted = DuoAdoptHomeGlyphFrame(ccPlus, 391.7, 16.9, 18.0, 0, 414, 22.0, 0, 736);
+    CHECK(fabs(adopted.x - 391.7) < 1e-9 && fabs(adopted.width - 16.9) < 1e-9 && fabs(adopted.height - 18.0) < 1e-9,
+          "Home-button Control Center did not adopt the Home Screen size/x: %.1f %.1f %.1f", adopted.x, adopted.width, adopted.height);
+    CHECK(fabs(adopted.y - 13.0) < 1e-9, "adopted ring not centred on the battery: y=%.1f", adopted.y);
+    // Face ID iPhones already match the Home Screen, so they are left alone.
+    DuoGlyphFrame faceId = DuoComputeControlCenterGlyphFrame(0, 393, 44, 360, 29.2, 1.0, 0, 852);
+    DuoGlyphFrame faceIdSame = DuoAdoptHomeGlyphFrame(faceId, 332.1, faceId.width, faceId.height, 0, 393, 29.2, 0, 852);
+    CHECK(Same(faceId, faceIdSame), "Face ID Control Center placement changed");
+    // Unknown or nonsensical Home Screen sizes leave Control Center's own placement.
+    CHECK(Same(ccPlus, DuoAdoptHomeGlyphFrame(ccPlus, NAN, 16.9, 18, 0, 414, 22, 0, 736)), "NaN home frame was adopted");
+    CHECK(Same(ccPlus, DuoAdoptHomeGlyphFrame(ccPlus, 391.7, 0, 18, 0, 414, 22, 0, 736)), "empty home frame was adopted");
+    // A Control Center container narrower than the Home Screen's keeps the ring inside it.
+    DuoGlyphFrame narrow = DuoAdoptHomeGlyphFrame(ccPlus, 391.7, 16.9, 18.0, 0, 380, 22.0, 0, 736);
+    CHECK(narrow.x + narrow.width <= 380.0 + 1e-9, "adopted ring left its container: right edge %.1f", narrow.x + narrow.width);
+
     DuoGlyphFrame large = DuoComputeGlyphFrame(0, 0, 414, 20, 400, 10, 1.40, 0, 736);
     DuoGlyphFrame previous = OldFrame(0, 0, 414, 20, 400, 10, 1.40);
     printf("iPhone 8 Plus at 140%%: %.1f pt ring, top %.1f pt (was %.1f pt, above the screen)\n",

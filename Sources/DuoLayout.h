@@ -69,4 +69,22 @@ static inline DuoGlyphFrame DuoComputeControlCenterGlyphFrame(double minX, doubl
     return frame;
 }
 
+// On Home-button iPhones (20 pt status bar) Control Center's container is taller
+// than the Home Screen's, so Control Center's DuoBar came out larger and about
+// 45 pt left of the Home Screen's (iPhone 8 Plus at 100%: 29.5 pt at x 347 versus
+// 18 pt at x 392), and the ring slid and resized as Control Center opened and
+// closed. When the last Home Screen DuoBar is smaller, Control Center uses its
+// size and horizontal position. homeX/homeW/homeH are in the container's
+// coordinates; the vertical position stays centred on Control Center's battery.
+static inline DuoGlyphFrame DuoAdoptHomeGlyphFrame(DuoGlyphFrame cc, double homeX, double homeW, double homeH,
+        double minX, double maxX, double batteryMidY, double visibleMinY, double visibleMaxY) {
+    if (!(isfinite(homeX) && isfinite(homeW) && isfinite(homeH)) || homeW <= 0 || homeH <= 0 ||
+            homeH >= cc.height - 1.0 || homeW > maxX - minX) return cc;
+    DuoGlyphFrame frame = {fmax(minX, fmin(homeX, maxX - homeW)), batteryMidY - homeH / 2.0, homeW, homeH};
+    if (visibleMaxY - visibleMinY > 10.0) {
+        frame.y = fmax(visibleMinY + 1.0, fmin(frame.y, visibleMaxY - 1.0 - homeH));
+    }
+    return frame;
+}
+
 #endif

@@ -1,3 +1,9 @@
+## 2.7.3 beta 4 — Same DuoBar size and place in Control Center on Home-button iPhones
+
+- On iPhones with a Home button (iPhone 8, 8 Plus, SE) Control Center drew a bigger DuoBar, about 45 pt to the left of the Home Screen's one. The simulator measured an iPhone 8 Plus at 100%: 29.5 pt tall at x 347 in Control Center, 18 pt tall at x 392 on the Home Screen. The ring therefore slid sideways and changed size every time Control Center opened or closed. Control Center now uses the Home Screen DuoBar's size and horizontal position on these phones. Face ID iPhones already matched and are unchanged.
+- Not fixed yet: the rotation-lock icon flicker. The simulator could not show the lock icon, so it is still unexplained.
+- Includes beta 3 (kept) and beta 2.
+
 ## 2.7.3 beta 3 — Steady rotation-lock icon in Control Center
 
 - Stop the rotation-lock icon flickering beside DuoBar in Control Center. DuoBar re-searched for the icon on every layout pass and, whenever that pass missed it, left it at its original place on top of the ring until the next pass moved it again. It now remembers the icon and keeps it beside the ring.
