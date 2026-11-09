@@ -78,7 +78,7 @@ while IFS=$'\t' read -r runtime version device <&3; do
         sbout="$shots/$slug-springboard-$size.txt"
         : > "$sbout"
         xcrun simctl spawn "$udid" defaults write local.duobar SizeScale -float "$size"
-        for kv in "DYLD_INSERT_LIBRARIES=$inject" "DUO_PROBE_OUT=$sbout" "DUO_PROBE_CC=1" \
+        for kv in "DYLD_INSERT_LIBRARIES=$inject" "DUO_PROBE_OUT=$sbout" "DUO_PROBE_CC=1" "DUO_PROBE_LOCK=1" \
                   "DUO_PROBE_LABEL=iOS $version $device SpringBoard ${size}x"; do
             xcrun simctl spawn "$udid" launchctl setenv "${kv%%=*}" "${kv#*=}"
         done

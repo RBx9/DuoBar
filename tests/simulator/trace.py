@@ -46,3 +46,17 @@ if last_cc and home:
           f"dsize={home[3] - last_cc[3]:.1f}")
 else:
     print(f"handoff unavailable cc={last_cc} home={home}")
+
+# Rotation-lock icon: how often its on-screen position changes once Control
+# Center is fully open. More than one position means it flickers.
+positions = []
+for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
+    match = re.search(r"trace open t=([\d.]+) (.*)$", line)
+    if not match or float(match.group(1)) < 1.2:
+        continue
+    locks = re.findall(r"lock win=SBControlCenterWindow rect=" + RECT, match.group(2))
+    positions.append(tuple(round(float(v), 1) for v in locks[0]) if locks else None)
+if positions:
+    flips = sum(1 for a, b in zip(positions, positions[1:]) if a != b)
+    distinct = sorted({p for p in positions if p}, key=lambda p: p[0])
+    print(f"lock steady frames={len(positions)} missing={positions.count(None)} flips={flips} distinct={distinct}")

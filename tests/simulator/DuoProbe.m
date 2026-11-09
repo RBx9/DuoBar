@@ -246,6 +246,17 @@ static void DuoProbeReportLayout(void) {
             view.hidden ? @"(hidden)" : @"", NSStringFromClass(view.window.class), DuoProbeRect(r),
             view.hidden, layer.opacity, container ? NSStringFromClass(container.superview.class) : @"-"]];
     }
+    // The orientation-lock icon is a status-bar image view; DUO_PROBE_LOCK
+    // turns the lock on so it is present, and its frame is traced like DuoBar's.
+    if ([name isEqualToString:@"_UIStatusBarImageView"] && DuoProbeEffectivelyVisible(view)) {
+        CALayer *layer = view.layer.presentationLayer ?: view.layer;
+        CALayer *root = view.window.layer.presentationLayer ?: view.window.layer;
+        CGRect r = [layer convertRect:layer.bounds toLayer:root];
+        if (r.size.width >= 4 && r.size.width <= 38 && r.size.height >= 4 && r.size.height <= 38) {
+            [items addObject:[NSString stringWithFormat:@"lock win=%@ rect=%@ tx=%.1f hid=%d",
+                NSStringFromClass(view.window.class), DuoProbeRect(r), view.transform.tx, view.hidden]];
+        }
+    }
     for (UIView *subview in view.subviews) [self collect:subview into:items];
 }
 - (void)tick:(CADisplayLink *)link {
@@ -278,7 +289,23 @@ static BOOL DuoProbeCallControlCenter(NSString *verb) {
     return NO;
 }
 
+static void DuoProbeEngageOrientationLock(void) {
+    Class cls = NSClassFromString(@"SBOrientationLockManager");
+    id manager = [cls respondsToSelector:@selector(sharedInstance)]
+        ? ((id (*)(id, SEL))objc_msgSend)(cls, @selector(sharedInstance)) : nil;
+    if ([manager respondsToSelector:NSSelectorFromString(@"lock")]) {
+        ((void (*)(id, SEL))objc_msgSend)(manager, NSSelectorFromString(@"lock"));
+        DuoProbeLog(@"orientation lock engaged via lock");
+    } else if ([manager respondsToSelector:NSSelectorFromString(@"lock:")]) {
+        ((void (*)(id, SEL, long))objc_msgSend)(manager, NSSelectorFromString(@"lock:"), 1);
+        DuoProbeLog(@"orientation lock engaged via lock:");
+    } else {
+        DuoProbeLog(@"orientation lock unavailable manager=%@", manager ? NSStringFromClass([manager class]) : @"nil");
+    }
+}
+
 static void DuoProbeTraceControlCenter(void) {
+    if (getenv("DUO_PROBE_LOCK")) DuoProbeEngageOrientationLock();
     DuoProbeActiveTracer = [DuoProbeTracer new];
     [DuoProbeActiveTracer startPhase:@"idle"];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{

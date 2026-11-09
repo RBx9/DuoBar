@@ -10,7 +10,7 @@ import json
 import subprocess
 
 DEVICES = {
-    16: ["iPhone 14 Pro", "iPhone 14", "iPhone 13 mini", "iPhone 14 Pro Max", "iPhone 12",
+    16: ["iPhone 8 Plus", "iPhone 14 Pro", "iPhone 14", "iPhone 13 mini", "iPhone 14 Pro Max", "iPhone 12",
          "iPhone SE (3rd generation)"],
     17: ["iPhone 15 Pro", "iPhone 15", "iPhone 14 Pro"],
     18: ["iPhone 16 Pro", "iPhone 16e"],
