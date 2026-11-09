@@ -684,8 +684,13 @@ static NSInteger DuoBars(_UIStatusBarSignalView *view, NSInteger maximum) {
                                                toView:container.window];
         } else if (inControlCenter && !CGRectIsEmpty(DuoHomeGlyphRect)) {
             CGPoint home = [container convertPoint:DuoHomeGlyphRect.origin fromView:container.window];
+            // Control Center's container ends short of the screen edge on Home-button
+            // iPhones. The ring may use the visible space beyond it, but never past a
+            // clipping ancestor: DuoVisibleRect already stops at those.
+            CGFloat rightLimit = CGRectGetMaxX(bounds);
+            if (!CGRectIsNull(visible) && isfinite(CGRectGetMaxX(visible))) rightLimit = MAX(rightLimit, CGRectGetMaxX(visible));
             frame = DuoAdoptHomeGlyphFrame(frame, home.x, CGRectGetWidth(DuoHomeGlyphRect),
-                CGRectGetHeight(DuoHomeGlyphRect), CGRectGetMinX(bounds), CGRectGetMaxX(bounds),
+                CGRectGetHeight(DuoHomeGlyphRect), CGRectGetMinX(bounds), rightLimit,
                 CGRectGetMidY(batteryRect), CGRectGetMinY(visible), CGRectGetMaxY(visible));
         }
     }
